@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>VinSchool One</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230F2E96'/%3E%3Ctext x='16' y='22' text-anchor='middle' fill='white' font-size='16' font-family='system-ui'%3EV%3C/text%3E%3C/svg%3E">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 body {
@@ -135,6 +136,8 @@ body {
   font-size:13px; font-weight:600; margin:2px auto 0;
 }
 .day-cell.today .dd { background:white; color:#0F2E96; }
+.day-cell.selected:not(.today) .dd { background:#e0e7ff; color:#1e3a8a; font-weight:700; }
+.day-cell.selected.today .dd { background:white; color:#0F2E96; box-shadow:0 0 0 2px #1B4FD8; }
 
 .per-tabs { display:flex; background:white; border-bottom:1px solid #e5e7eb; }
 .per-tab { flex:1; text-align:center; padding:10px; font-size:12.5px; font-weight:600; color:#6b7280; cursor:pointer; border-bottom:2px solid transparent; }
@@ -683,58 +686,14 @@ body {
 <div class="page" id="page-schedule">
   <div class="sub-header"><span class="sub-back" onclick="goBack()">←</span><span class="sub-title">Lịch học - Sự kiện</span></div>
   <div class="week-strip">
-    <div class="month-row">‹ &nbsp; Tháng 4 2026 &nbsp; ›</div>
-    <div class="days">
-      <div class="day-cell"><div class="dn">T2</div><div class="dd">6</div></div>
-      <div class="day-cell"><div class="dn">T3</div><div class="dd">7</div></div>
-      <div class="day-cell"><div class="dn">T4</div><div class="dd">8</div></div>
-      <div class="day-cell today"><div class="dn">T5</div><div class="dd">9</div></div>
-      <div class="day-cell"><div class="dn">T6</div><div class="dd">10</div></div>
-      <div class="day-cell"><div class="dn">T7</div><div class="dd">11</div></div>
-      <div class="day-cell"><div class="dn">CN</div><div class="dd">12</div></div>
-    </div>
+    <div class="month-row"><span style="cursor:pointer;user-select:none;padding:4px 8px;" id="schedule-week-prev" onclick="protoShiftWeek(-1)" role="button">‹</span> &nbsp; <span id="schedule-month-label">Tháng 4 2026</span> &nbsp; <span style="cursor:pointer;user-select:none;padding:4px 8px;" id="schedule-week-next" onclick="protoShiftWeek(1)" role="button">›</span></div>
+    <div class="days" id="schedule-week-days"></div>
   </div>
   <div class="per-tabs">
     <div class="per-tab active">📅 Lịch học</div>
     <div class="per-tab">📌 Sự kiện</div>
   </div>
-  <div style="padding:4px 0 12px;">
-    <div class="period-card">
-      <div class="top"><span class="per-num">1</span><span class="per-subj">CIE ESL-5B06</span><span class="per-time">08:00-08:35</span></div>
-      <div class="per-details"><div class="per-room">Phòng học: Phòng học lớp CN</div><div class="per-teacher">GV: Gareth Morton</div></div>
-    </div>
-    <div class="period-card">
-      <div class="top"><span class="per-num">2</span><span class="per-subj">Tiếng Việt-5B06</span><span class="per-time">08:35-09:10</span></div>
-      <div class="per-details"><div class="per-room">Phòng học: Phòng học lớp CN</div><div class="per-teacher">GV: Lê Thị Kim Anh</div></div>
-    </div>
-    <div class="break-row">☕ Nghỉ giữa giờ · 09:10 – 09:30</div>
-    <div class="period-card">
-      <div class="top"><span class="per-num">3</span><span class="per-subj">Giáo dục thể chất-5B06</span><span class="per-time">09:30-10:05</span></div>
-      <div class="per-details"><div class="per-room">Phòng học: Sân vận động T36</div><div class="per-teacher">GV: Vũ Trung Hiếu</div></div>
-    </div>
-    <div class="period-card">
-      <div class="top"><span class="per-num">4</span><span class="per-subj">GD Kỹ năng Phẩm chất-5B06</span><span class="per-time">10:05-10:40</span></div>
-      <div class="per-details"><div class="per-room">Phòng học: Phòng học lớp CN</div><div class="per-teacher">GV: Gareth Morton</div></div>
-    </div>
-    <div class="break-row">🍱 Nghỉ trưa · 10:40 – 12:30</div>
-    <div class="period-card">
-      <div class="top"><span class="per-num">5</span><span class="per-subj">CIE Maths-5B06</span><span class="per-time">12:30-13:05</span></div>
-      <div class="per-details"><div class="per-room">Phòng học: Phòng học lớp CN</div><div class="per-teacher">GV: Gareth Morton</div></div>
-    </div>
-    <div class="period-card">
-      <div class="top"><span class="per-num">6</span><span class="per-subj">Việt Nam học-5B06</span><span class="per-time">13:05-13:40</span></div>
-      <div class="per-details"><div class="per-room">Phòng học: Phòng học lớp CN</div><div class="per-teacher">GV: Đinh Thị Ngọc Hồi</div></div>
-    </div>
-    <div class="break-row">☕ Nghỉ giữa giờ · 13:40 – 14:00</div>
-    <div class="period-card">
-      <div class="top"><span class="per-num">7</span><span class="per-subj">CIE ICT-5B06</span><span class="per-time">14:00-14:35</span></div>
-      <div class="per-details"><div class="per-room">Phòng học: Phòng máy tính T36</div><div class="per-teacher">GV: Elanza Jurgens</div></div>
-    </div>
-    <div class="period-card">
-      <div class="top"><span class="per-num">8</span><span class="per-subj">Tự học có hướng dẫn-5B06</span><span class="per-time">14:35-15:10</span></div>
-      <div class="per-details"><div class="per-room">Phòng học: Phòng học lớp CN</div><div class="per-teacher">GV: Gareth Morton</div></div>
-    </div>
-  </div>
+  <div id="schedule-periods-root" style="padding:4px 0 12px;"></div>
 </div>
 
 <!-- ══════════════════════ HOMEWORK ══════════════════════ -->
@@ -750,146 +709,39 @@ body {
     <span class="arr">›</span>
   </div>
   <!-- TO DO -->
-  <div id="hw-todo">
-    <div class="hw-item"><div class="subj-tag">5B06-TIẾNG VIỆT-ANHLTK1-TiH.T36</div><div class="hw-name">Quiz TV Tuần 26</div><div class="hw-meta"><div class="hw-status"><span class="sdot undone"></span>Chưa làm · Hạn 09/04</div><div class="hw-score">-/4 Điểm</div></div></div>
-    <div class="hw-item"><div class="subj-tag">5B06-TIẾNG VIỆT-ANHLTK1-TiH.T36</div><div class="hw-name">Quiz tuần 29</div><div class="hw-meta"><div class="hw-status"><span class="sdot pending"></span>Chưa làm · Hạn 10/04</div><div class="hw-score">-/4 Điểm</div></div></div>
-    <div class="hw-item"><div class="subj-tag">5B06-TIẾNG VIỆT-ANHLTK1-TiH.T36</div><div class="hw-name">Quiz tuần 30</div><div class="hw-meta"><div class="hw-status"><span class="sdot pending"></span>Chưa làm · Hạn 11/04</div><div class="hw-score">-/4 Điểm</div></div></div>
-    <div class="hw-item"><div class="subj-tag blue">CIE ICT</div><div class="hw-name">Unit 5 Project score</div><div class="hw-meta"><div class="hw-status"><span class="sdot pending"></span>Chưa hoàn thành · Hạn 12/04</div><div class="hw-score">-</div></div></div>
-  </div>
+  <div id="hw-todo"></div>
   <!-- ALL -->
-  <div id="hw-all" style="display:none">
-    <div class="hw-item"><div class="subj-tag blue">CIE Maths-5B06</div><div class="hw-name">Fraction Practice Worksheet</div><div class="hw-meta"><div class="hw-status"><span class="sdot done"></span>Đã làm</div><div class="hw-score">10/10 Điểm</div></div></div>
-    <div class="hw-item"><div class="subj-tag blue">CIE Science-5B06</div><div class="hw-name">Plant Life Cycle Quiz</div><div class="hw-meta"><div class="hw-status"><span class="sdot done"></span>Đã làm</div><div class="hw-score">8/10 Điểm</div></div></div>
-    <div class="hw-item"><div class="subj-tag blue">CIE ESL-5B06</div><div class="hw-name">Reading Comprehension Task</div><div class="hw-meta"><div class="hw-status"><span class="sdot done"></span>Đã làm</div><div class="hw-score">9/10 Điểm</div></div></div>
-    <div class="hw-item"><div class="subj-tag">5B06-TIẾNG VIỆT-ANHLTK1-TiH.T36</div><div class="hw-name">Quiz TV Tuần 26</div><div class="hw-meta"><div class="hw-status"><span class="sdot undone"></span>Chưa làm</div><div class="hw-score">-/4 Điểm</div></div></div>
-    <div class="hw-item"><div class="subj-tag">5B06-TIẾNG VIỆT-ANHLTK1-TiH.T36</div><div class="hw-name">Quiz tuần 29</div><div class="hw-meta"><div class="hw-status"><span class="sdot pending"></span>Chưa làm</div><div class="hw-score">-/4 Điểm</div></div></div>
-    <div class="hw-item"><div class="subj-tag">5B06-TIẾNG VIỆT-ANHLTK1-TiH.T36</div><div class="hw-name">Quiz tuần 30</div><div class="hw-meta"><div class="hw-status"><span class="sdot pending"></span>Chưa làm</div><div class="hw-score">-/4 Điểm</div></div></div>
-    <div class="hw-item"><div class="subj-tag blue">CIE ICT</div><div class="hw-name">Unit 5 Project score</div><div class="hw-meta"><div class="hw-status"><span class="sdot pending"></span>Chưa hoàn thành</div><div class="hw-score">-</div></div></div>
-  </div>
+  <div id="hw-all" style="display:none"></div>
 </div>
 
 <!-- ══════════════════════ ATTENDANCE ══════════════════════ -->
 <div class="page" id="page-attendance">
   <div class="sub-header"><span class="sub-back" onclick="goBack()">←</span><span class="sub-title">Chuyên cần</span></div>
-  <div class="att-date-bar">📅 09/04/2026 – 09/04/2026</div>
+  <div class="att-date-bar" id="att-date-bar">📅 09/04/2026 – 09/04/2026</div>
   <div class="att-summary">
-    <div class="att-stat"><div class="att-num on-time">1</div><div class="att-lbl">Đúng giờ</div></div>
-    <div class="att-stat"><div class="att-num late-cl">0</div><div class="att-lbl">Đến muộn</div></div>
-    <div class="att-stat"><div class="att-num abs-ok">0</div><div class="att-lbl">Vắng có phép</div></div>
-    <div class="att-stat"><div class="att-num abs-no">0</div><div class="att-lbl">Vắng không phép</div></div>
+    <div class="att-stat"><div class="att-num on-time" id="att-stat-ontime">0</div><div class="att-lbl">Đúng giờ</div></div>
+    <div class="att-stat"><div class="att-num late-cl" id="att-stat-late">0</div><div class="att-lbl">Đến muộn</div></div>
+    <div class="att-stat"><div class="att-num abs-ok" id="att-stat-absok">0</div><div class="att-lbl">Vắng có phép</div></div>
+    <div class="att-stat"><div class="att-num abs-no" id="att-stat-absno">0</div><div class="att-lbl">Vắng không phép</div></div>
   </div>
-  <div class="att-day">
-    <div class="att-day-hdr" onclick="toggleAtt('a09')">
-      <span>09/04/2026</span>
-      <span style="display:flex;align-items:center;gap:8px;">
-        <span class="att-badge ok">GV chủ nhiệm điểm danh | 08:00 - Đúng giờ</span>
-        <span id="arr-a09">∧</span>
-      </span>
-    </div>
-    <div id="a09">
-      <div class="att-row"><span>08:00-08:35 · CIE ESL-5B06</span><span class="att-ok">Đúng giờ</span></div>
-      <div class="att-row"><span>08:35-09:10 · Tiếng Việt-5B06</span><span class="att-ok">Đúng giờ</span></div>
-      <div class="att-row"><span>09:30-10:05 · Giáo dục thể chất-5B06</span><span class="att-ok">Đúng giờ</span></div>
-      <div class="att-row"><span>10:05-10:40 · GD Kỹ năng Phẩm chất-5B06</span><span class="att-ok">Đúng giờ</span></div>
-      <div class="att-row"><span>12:30-13:05 · CIE Maths-5B06</span><span class="att-ok">Đúng giờ</span></div>
-      <div class="att-row"><span>13:05-13:40 · Việt Nam học-5B06</span><span class="att-ok">Đúng giờ</span></div>
-      <div class="att-row"><span>14:00-14:35 · CIE ICT-5B06</span><span class="att-ok">Đúng giờ</span></div>
-      <div class="att-row"><span>14:35-15:10 · Tự học có hướng dẫn-5B06</span><span class="att-ok">Đúng giờ</span></div>
-    </div>
-  </div>
-  <div class="att-day">
-    <div class="att-day-hdr" onclick="toggleAtt('a08')"><span>08/04/2026</span><span id="arr-a08">∨</span></div>
-    <div id="a08" style="display:none">
-      <div class="att-row"><span>08:00-08:35 · Tiếng Việt-5B06</span><span class="att-ok">Đúng giờ</span></div>
-      <div class="att-row"><span>08:35-09:10 · CIE Maths-5B06</span><span class="att-ok">Đúng giờ</span></div>
-    </div>
-  </div>
-  <div class="att-day">
-    <div class="att-day-hdr" onclick="toggleAtt('a07')"><span>07/04/2026</span><span id="arr-a07">∨</span></div>
-    <div id="a07" style="display:none">
-      <div class="att-row"><span>08:00-08:35 · CIE ESL-5B06</span><span class="att-ok">Đúng giờ</span></div>
-      <div class="att-row"><span>08:35-09:10 · Tiếng Việt-5B06</span><span class="att-ok">Đúng giờ</span></div>
-    </div>
-  </div>
-  <div class="att-day"><div class="att-day-hdr"><span>06/04/2026</span><span>∨</span></div></div>
-  <div class="att-day"><div class="att-day-hdr"><span>04/04/2026</span><span>∨</span></div></div>
-  <div class="att-day"><div class="att-day-hdr"><span>03/04/2026</span><span>∨</span></div></div>
-  <div class="att-day"><div class="att-day-hdr"><span>02/04/2026</span><span>∨</span></div></div>
+  <div id="attendance-root"></div>
 </div>
 
 <!-- ══════════════════════ COMMENTS ══════════════════════ -->
 <div class="page" id="page-comments">
   <div class="sub-header"><span class="sub-back" onclick="goBack()">←</span><span class="sub-title">Nhận xét</span></div>
-  <div class="cmt-date-bar">📅 09/04/2026</div>
-  <div style="padding:6px 0 16px;">
-    <div class="cmt-card">
-      <div class="cmt-hdr"><div class="cmt-avatar">👨‍🏫</div><div><div class="cmt-tname">Phạm Ngọc Lợi - GV Câu lạc bộ Bóng đá "CHIẾN BINH SÂN CỎ" 2B K2</div><div class="cmt-sub">Sinh hoạt Chủ nhiệm</div></div><div class="cmt-date">08/04</div></div>
-      <div class="cmt-text">Kỹ năng dẫn bóng và chuyền bóng của con đã đạt độ thuần thục cao, thể hiện sự nỗ lực...</div>
-      <div class="cmt-more">Xem thêm</div>
-      <div class="cmt-action"><span>👍 1</span><span>💬 Bình luận</span></div>
-    </div>
-    <div class="cmt-card">
-      <div class="cmt-hdr"><div class="cmt-avatar">👩‍🏫</div><div><div class="cmt-tname">Lê Thị Kim Anh - GV Tiếng Việt-5B06</div><div class="cmt-sub">Tiếng Việt</div></div><div class="cmt-date">07/04</div></div>
-      <div class="cmt-text">Kính gửi bố mẹ Nguyễn Hưng. Cô ghi nhận con đã hoàn thành đầy đủ phiếu bài tập tuần này. Tuy nhiên, ở một số câu...</div>
-      <div class="cmt-more">Xem thêm</div>
-      <div class="cmt-action"><span>👍 1</span><span>💬 Bình luận</span></div>
-    </div>
-    <div class="cmt-card">
-      <div class="cmt-hdr"><div class="cmt-avatar">👩‍🏫</div><div><div class="cmt-tname">Lê Thị Kim Anh - GV Tiếng Việt-5B06</div><div class="cmt-sub">Tiếng Việt</div></div><div class="cmt-date">07/04</div></div>
-      <div class="cmt-text">Cô khen Hưng hôm nay có bài viết văn miêu tả rất giàu hình ảnh và cảm xúc. Con đã biết cách sử dụng các từ láy để làm bài văn sinh động hơn.</div>
-      <div class="cmt-action"><span>👍 1</span><span>💬 Bình luận</span></div>
-    </div>
-    <div class="cmt-card">
-      <div class="cmt-hdr"><div class="cmt-avatar">👨‍🏫</div><div><div class="cmt-tname">Gareth Morton - GV CIE Maths-5B06</div><div class="cmt-sub">CIE Maths</div></div><div class="cmt-date">07/04</div></div>
-      <div class="cmt-text">Hưng nắm vững kiến thức về diện tích và chu vi hình tròn. Con giải các bài tập nâng cao trong sách bổ trợ rất nhanh và chính xác.</div>
-      <div class="cmt-action"><span>👍 1</span><span>💬 Bình luận</span></div>
-    </div>
-    <div class="cmt-card">
-      <div class="cmt-hdr"><div class="cmt-avatar">🎨</div><div><div class="cmt-tname">Dương Thị Mỹ Hạnh - GV Mỹ thuật</div><div class="cmt-sub">Mỹ thuật</div></div><div class="cmt-date">06/04</div></div>
-      <div class="cmt-text">Con có tư duy màu sắc rất tốt trong bài vẽ chủ đề bảo vệ môi trường. Cô khuyến khích Hưng thử nghiệm thêm các chất liệu mới.</div>
-      <div class="cmt-action"><span>👍 1</span><span>💬 Bình luận</span></div>
-    </div>
-    <div class="cmt-card">
-      <div class="cmt-hdr"><div class="cmt-avatar">👩‍💻</div><div><div class="cmt-tname">Elanza Jurgens - GV CIE ICT</div><div class="cmt-sub">CIE ICT</div></div><div class="cmt-date">03/04</div></div>
-      <div class="cmt-text">Hưng đã hoàn thành dự án thiết kế thiệp trên phần mềm đồ họa. Con biết cách phối hợp các biểu tượng để thông điệp trở nên rõ ràng.</div>
-      <div class="cmt-action"><span>👍 1</span><span>💬 Bình luận</span></div>
-    </div>
-    <div class="cmt-card">
-      <div class="cmt-hdr"><div class="cmt-avatar">⚽</div><div><div class="cmt-tname">Vũ Trung Hiếu - GV GD Thể chất</div><div class="cmt-sub">GD Thể chất</div></div><div class="cmt-date">03/04</div></div>
-      <div class="cmt-text">Thầy khen Hưng có kỹ thuật dẫn bóng tiến bộ rõ rệt. Con luôn nỗ lực hết mình và có tinh thần thi đấu fair-play với đội bạn.</div>
-      <div class="cmt-action"><span>👍 1</span><span>💬 Bình luận</span></div>
-    </div>
-  </div>
+  <div class="cmt-date-bar" id="cmt-date-bar">📅 09/04/2026</div>
+  <div id="comments-root" style="padding:6px 0 16px;"></div>
 </div>
 
 <!-- ══════════════════════ MENU ══════════════════════ -->
 <div class="page" id="page-menu">
   <div class="sub-header"><span class="sub-back" onclick="goBack()">←</span><span class="sub-title">Thực đơn</span></div>
   <div class="week-strip">
-    <div class="month-row">‹ &nbsp; Tháng 4 2026 &nbsp; ›</div>
-    <div class="days">
-      <div class="day-cell"><div class="dn">T2</div><div class="dd">6</div></div>
-      <div class="day-cell"><div class="dn">T3</div><div class="dd">7</div></div>
-      <div class="day-cell"><div class="dn">T4</div><div class="dd">8</div></div>
-      <div class="day-cell today"><div class="dn">T5</div><div class="dd">9</div></div>
-      <div class="day-cell"><div class="dn">T6</div><div class="dd">10</div></div>
-      <div class="day-cell"><div class="dn">T7</div><div class="dd">11</div></div>
-      <div class="day-cell"><div class="dn">CN</div><div class="dd">12</div></div>
-    </div>
+    <div class="month-row"><span style="cursor:pointer;user-select:none;padding:4px 8px;" id="menu-week-prev" onclick="protoShiftWeek(-1)">‹</span> &nbsp; <span id="menu-month-label">Tháng 4 2026</span> &nbsp; <span style="cursor:pointer;user-select:none;padding:4px 8px;" id="menu-week-next" onclick="protoShiftWeek(1)">›</span></div>
+    <div class="days" id="menu-week-days"></div>
   </div>
-  <div class="meal-section">
-    <div class="meal-lbl lunch">🍽 Ăn trưa</div>
-    <div class="meal-item"><span class="meal-name">Thịt bò chỉ kho tàu</span><span class="meal-cal">231.74 kcal</span></div>
-    <div class="meal-item"><span class="meal-name">Đậu phụ chiên trứng muối</span><span class="meal-cal">69.6 kcal</span></div>
-    <div class="meal-item"><span class="meal-name">Bắp cải xào cà chua</span><span class="meal-cal">24.14 kcal</span></div>
-    <div class="meal-item"><span class="meal-name">Canh mướp mồng tơi nấu tôm</span><span class="meal-cal">9.95 kcal</span></div>
-    <div class="meal-item"><span class="meal-name">Cơm trắng</span><span class="meal-cal">265.93 kcal</span></div>
-    <div class="meal-item"><span class="meal-name">Thanh long trắng</span><span class="meal-cal">33.43 kcal</span></div>
-  </div>
-  <div class="meal-section" style="padding-top:12px;padding-bottom:16px;">
-    <div class="meal-lbl snack">🥤 Ăn phụ</div>
-    <div class="meal-item"><span class="meal-name">Gà chiên kiểu KFC</span><span class="meal-cal">260.46 kcal</span></div>
-  </div>
+  <div id="menu-root"></div>
 </div>
 
 <!-- ══════════════════════ TUITION ══════════════════════ -->
@@ -1221,54 +1073,7 @@ body {
     <div class="chip" onclick="goTo('page-ai-chat')">📊 Điểm các môn?</div>
   </div>
 
-  <!-- Example result (pre-loaded) -->
-  <div style="padding:8px 14px 4px;font-size:11px;font-weight:700;color:#6b7280;letter-spacing:.3px;">KẾT QUẢ GẦN ĐÂY</div>
-  <div class="ai-result-card">
-    <div class="ai-result-header">
-      <span style="font-size:18px;">📋</span>
-      <span class="ai-result-title">Bài tập chưa làm — Tuần 06/04–12/04</span>
-      <span class="ai-badge">AI ✨</span>
-    </div>
-    <div class="ai-result-body">
-      <div class="ai-result-row">
-        <span class="ri">📝</span>
-        <span class="rt">Quiz TV Tuần 26 · Tiếng Việt</span>
-        <span class="rb" style="color:#ef4444;font-weight:700;">Hôm nay!</span>
-      </div>
-      <div class="ai-result-row">
-        <span class="ri">📝</span>
-        <span class="rt">Quiz tuần 29 · Tiếng Việt</span>
-        <span class="rb">10/04</span>
-      </div>
-      <div class="ai-result-row">
-        <span class="ri">📝</span>
-        <span class="rt">Quiz tuần 30 · Tiếng Việt</span>
-        <span class="rb">11/04</span>
-      </div>
-      <div class="ai-result-row">
-        <span class="ri">💻</span>
-        <span class="rt">Unit 5 Project score · CIE ICT</span>
-        <span class="rb">12/04</span>
-      </div>
-      <button class="ai-deeplink-btn" onclick="goTo('page-homework')">Mở Bài tập - Kiểm tra →</button>
-      <div class="ai-source-badge">📊 Dữ liệu từ Bài tập · Cập nhật hôm nay</div>
-    </div>
-  </div>
-
-  <div class="ai-result-card">
-    <div class="ai-result-header">
-      <span style="font-size:18px;">🍱</span>
-      <span class="ai-result-title">Thực đơn hôm nay — T5, 09/04</span>
-      <span class="ai-badge">AI ✨</span>
-    </div>
-    <div class="ai-result-body">
-      <div class="ai-result-row"><span class="ri">🥩</span><span class="rt">Thịt bò chỉ kho tàu · Đậu phụ chiên</span><span class="rb">301 kcal</span></div>
-      <div class="ai-result-row"><span class="ri">🥦</span><span class="rt">Bắp cải xào · Canh mướp mồng tơi</span><span class="rb">34 kcal</span></div>
-      <div class="ai-result-row"><span class="ri">🍚</span><span class="rt">Cơm trắng · Thanh long trắng</span><span class="rb">299 kcal</span></div>
-      <button class="ai-deeplink-btn" onclick="goTo('page-menu')">Xem thực đơn đầy đủ →</button>
-      <div class="ai-source-badge">📊 Dữ liệu từ Thực đơn · Cập nhật hôm nay</div>
-    </div>
-  </div>
+  <div id="ai-search-results-root"></div>
 </div>
 
 <!-- ══════════════════════ AI CHAT ══════════════════════ -->
@@ -1473,6 +1278,7 @@ body {
 </div>
 
 </div><!-- /app -->
+<script src="prototype-data.js"></script>
 <script>
 const MAIN = ['page-home','page-student','page-chat','page-notifications','page-account'];
 const TAB_MAP = { home:'page-home', student:'page-student', chat:'page-chat', notifications:'page-notifications', account:'page-account' };
@@ -1538,6 +1344,7 @@ function toggleAtt(id) {
   if (arr) arr.textContent = open ? '∨' : '∧';
 }
 showPage('page-home');
+if (typeof initPrototypeFromRag === 'function') initPrototypeFromRag();
 </script>
 </body>
 </html>
