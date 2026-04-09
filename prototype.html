@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <title>VinSchool One</title>
@@ -23,6 +23,34 @@ body {
   overflow: hidden;
   box-shadow: 0 20px 60px rgba(0,0,0,0.35);
   border-radius: 44px;
+}
+/* ── Mobile (thiết bị chạm): dùng full màn hình điện thoại ── */
+@media (max-width: 480px) and (hover: none) and (pointer: coarse) {
+  body {
+    background: #f5f6fa;
+    padding: 0;
+    align-items: stretch;
+    justify-content: stretch;
+    height: 100dvh;
+    overflow: hidden;
+  }
+  .app {
+    width: 100%;
+    height: 100dvh;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .bottom-nav {
+    padding-bottom: max(18px, env(safe-area-inset-bottom));
+    left: 0;
+    transform: none;
+    width: 100%;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+  .status-bar {
+    padding-top: max(14px, env(safe-area-inset-top));
+  }
 }
 /* ── Status Bar ── */
 .status-bar {
@@ -68,12 +96,28 @@ body {
   box-shadow: 0 2px 10px rgba(15, 46, 150, 0.12);
 }
 /* ── Screen wrap ── */
-.screen-wrap { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+.screen-wrap {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  /* Chừa chỗ cho bottom nav (tránh bị che khi nav được ghim dưới) */
+  padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+}
 .screen-wrap::-webkit-scrollbar { display: none; }
 /* ── Bottom nav ── */
 .bottom-nav {
+  display: flex;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: white; border-top: 1px solid #e5e7eb;
-  display: flex; padding: 8px 0 18px; flex-shrink: 0;
+  padding: 8px 0 calc(18px + env(safe-area-inset-bottom, 0px));
+  flex-shrink: 0;
+  border-bottom-left-radius: 44px;
+  border-bottom-right-radius: 44px;
+  z-index: 50;
 }
 .nav-item {
   flex: 1; display: flex; flex-direction: column;
@@ -1236,7 +1280,7 @@ body {
         </div>
       </div>
       <div class="brief-event-body">
-        <div class="brief-event-detail"></div>
+        <div class="brief-event-detail">
           Hưng còn <strong>4 bài tập chưa hoàn thành</strong> tuần này. Quan trọng nhất: <strong>Quiz TV Tuần 26</strong> hạn nộp hôm nay (09/04). Phụ huynh nhắc con làm sớm!
         </div>
         <button class="brief-deeplink" onclick="goTo('page-homework')">📋 Mở Bài tập - Kiểm tra →</button>
