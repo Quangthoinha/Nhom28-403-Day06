@@ -1,79 +1,64 @@
 import json
 import os
-from datetime import datetime
-from pathlib import Path
-from typing import Any, Dict, List, Optional
+import re
+from typing import List, Dict, Any, Optional
 
-from services.rag_service import get_rag_service
-
-_REPO_ROOT = Path(__file__).resolve().parent.parent
-
-DATA_PENDING_MSG = (
-    "Nhà trường chưa cập nhật dữ liệu. Phụ huynh vui lòng thử lại sau."
-)
-
-
-def _default_data_path() -> Path:
-    env = os.environ.get("RAG_DATA_PATH")
-    if env:
-        return Path(env).expanduser().resolve()
-    return _REPO_ROOT / "rag_data.json"
-
-
-def _date_variants(date_str: str) -> List[str]:
-    """Chuẩn hóa ngày DD/MM/YYYY và YYYY-MM-DD để khớp nội dung JSON."""
-    s = date_str.strip()
-    variants = {s}
-    for fmt in ("%d/%m/%Y", "%Y-%m-%d"):
-        try:
-            d = datetime.strptime(s, fmt)
-            variants.add(d.strftime("%d/%m/%Y"))
-            variants.add(d.strftime("%Y-%m-%d"))
-            break
-        except ValueError:
-            continue
-    return list(variants)
-
-
-def _sort_by_row(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    return sorted(items, key=lambda x: x.get("metadata", {}).get("row", 0))
-
+# Attempt to import rag_service, or use a placeholder if not found
+try:
+    from services.rag_service import get_rag_service
+except ImportError:
+    try:
+        from .rag_service import get_rag_service
+    except ImportError:
+        get_rag_service = None
 
 class VinschoolTools:
-    def __init__(self, data_path: Optional[Path] = None):
-        self.data_path = data_path or _default_data_path()
-        self.chunks: List[Dict[str, Any]] = []
+    def __init__(self, data_path: str = None):
+        if data_path is None:
+            # Get the path to rag_data.json relative to this file
+            # Assuming structure: /services/vinschool_tools.py and /data/rag_data.json
+            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            self.data_path = os.path.join(base_dir, "data", "rag_data.json")
+        else:
+            self.data_path = data_path
+            
+        self.chunks = []
         self._rag_service = None
         self.load_data()
 
     @property
     def rag_service(self):
-        if self._rag_service is None:
+        if self._rag_service is None and get_rag_service is not None:
             self._rag_service = get_rag_service()
         return self._rag_service
 
-    def load_data(self) -> None:
-        if self.data_path.is_file():
+    def load_data(self):
+        if os.path.exists(self.data_path):
             with open(self.data_path, "r", encoding="utf-8") as f:
                 self.chunks = json.load(f)
         else:
             print(f"Error: Data file not found at {self.data_path}")
 
-    def _filter_by_sheet(self, sheet_name: str) -> List[Dict[str, Any]]:
+    def _filter_by_sheet(self, sheet_name: str) -> List[Dict]:
         return [c for c in self.chunks if c.get("metadata", {}).get("sheet") == sheet_name]
 
     def get_student_profile(self, student_name: str = "Nguyễn Hưng") -> str:
+        """Lấy thông tin cơ bản của học sinh."""
         sheet_data = self._filter_by_sheet("Student Information")
         for item in sheet_data:
             if student_name.lower() in item["content"].lower():
                 return item["content"]
-        return DATA_PENDING_MSG
+        return f"Không tìm thấy thông tin cho học sinh {student_name}."
 
     def get_attendance(self, date_str: str, student_id: str = "VS108245") -> str:
-        sheet_data = _sort_by_row(self._filter_by_sheet("Điểm danh"))
-        daily_attendance: List[str] = []
+        """
+        Lấy thông tin điểm danh của học sinh trong một ngày cụ thể.
+        date_str: Định dạng 'DD/MM/YYYY' (ví dụ: '30/03/2026')
+        """
+        sheet_data = self._filter_by_sheet("Điểm danh")
+        daily_attendance = []
         current_date_found = False
-
+        
         for item in sheet_data:
             content = item["content"]
             if date_str in content:
@@ -83,87 +68,163 @@ class VinschoolTools:
                 daily_attendance.append(content)
             elif current_date_found and "Ngày:" in content and date_str not in content:
                 break
-
+                
         if not daily_attendance:
-            return DATA_PENDING_MSG
-
+            return f"Không có dữ liệu điểm danh cho ngày {date_str}."
+        
         return "\n---\n".join(daily_attendance)
 
     def get_homework(self, status: str = "all", student_id: str = "VS108245") -> str:
+        """
+        Lấy danh sách bài tập. 
+        status: 'all', 'Chưa làm', 'Đã làm', 'Đã hoàn thành'
+        """
         sheet_data = self._filter_by_sheet("Bài tập")
-        filtered: List[str] = []
+        filtered = []
         for item in sheet_data:
             content = item["content"]
             if status == "all" or status.lower() in content.lower():
                 filtered.append(content)
-
+        
         if not filtered:
-            return DATA_PENDING_MSG
-
+            return f"Không tìm thấy bài tập với trạng thái '{status}'."
+            
         return "\n---\n".join(filtered)
 
     def get_menu(self, date_str: str) -> str:
-        sheet_data = _sort_by_row(self._filter_by_sheet("Thực đơn"))
-        menu_items: List[str] = []
+        """
+        Lấy thực đơn của nhà trường.
+        date_str: Định dạng 'DD/MM/YYYY' (ví dụ: '16/03/2026')
+        """
+        sheet_data = self._filter_by_sheet("Thực đơn")
+        menu_items = []
         found_date = False
-
+        
         for item in sheet_data:
             content = item["content"]
             if date_str in content:
                 found_date = True
                 menu_items.append(content)
             elif found_date and "Ngày:" not in content:
-                menu_items.append(content)
+                 menu_items.append(content)
             elif found_date and "Ngày:" in content:
                 break
-
+                
         if not menu_items:
-            return DATA_PENDING_MSG
-
+            return f"Không có dữ liệu thực đơn cho ngày {date_str}."
+            
         return "\n---\n".join(menu_items)
 
     def get_tuition_info(self, student_id: str = "VS108245") -> str:
+        """Lấy thông tin học phí và các khoản phí."""
         sheet_data = self._filter_by_sheet("Học phí")
         if not sheet_data:
-            return DATA_PENDING_MSG
-
+            return "Không tìm thấy dữ liệu học phí."
+        
         return "\n---\n".join([item["content"] for item in sheet_data])
 
     def get_teacher_comments(self, date_str: Optional[str] = None) -> str:
+        """Lấy nhận xét của giáo viên."""
         sheet_data = self._filter_by_sheet("Nhận xét")
         if not date_str:
             return "\n---\n".join([item["content"] for item in sheet_data])
-
-        variants = _date_variants(date_str)
-        filtered: List[str] = []
-        for item in sheet_data:
-            content = item["content"]
-            if any(v in content for v in variants):
-                filtered.append(content)
-
+            
+        filtered = [item["content"] for item in sheet_data if date_str in item["content"]]
         if not filtered:
-            return DATA_PENDING_MSG
-
+            return f"Không có nhận xét nào trong ngày {date_str}."
         return "\n---\n".join(filtered)
 
-    def general_search(self, query: str) -> str:
-        results = self.rag_service.query(query, top_k=3)
+    def get_grades(self, subject: Optional[str] = None) -> str:
+        """
+        Lấy kết quả học tập (điểm số) của học sinh.
+        subject: Tên môn học (ví dụ: 'Tiếng Việt', 'CIE Maths')
+        """
+        sheet_data = self._filter_by_sheet("Kết quả học tập")
+        if not sheet_data:
+            return "Không tìm thấy dữ liệu kết quả học tập."
+            
+        results = []
+        for item in sheet_data:
+            content = item["content"]
+            if not subject or subject.lower() in content.lower():
+                results.append(content)
+        
         if not results:
-            return DATA_PENDING_MSG
+            if subject:
+                return f"Không tìm thấy kết quả học tập cho môn '{subject}'."
+            return "Không tìm thấy dữ liệu kết quả học tập."
+            
+        return "\n---\n".join(results)
 
-        formatted_results = []
-        for res in results:
-            formatted_results.append(
-                f"Nguồn: {res['metadata'].get('sheet', 'Chung')}\n{res['content']}"
-            )
+    def get_latest_comments(self, limit: int = 3) -> str:
+        """
+        Lấy các nhận xét mới nhất của giáo viên.
+        limit: Số lượng nhận xét mới nhất cần lấy.
+        """
+        sheet_data = self._filter_by_sheet("Nhận xét")
+        if not sheet_data:
+            return "Không tìm thấy dữ liệu nhận xét."
+        
+        # Sort items by date in the content string
+        # Content format: "Dữ liệu từ bảng: Nhận xét\n- Ngày: YYYY-MM-DD ..."
+        def get_date(item):
+            match = re.search(r"Ngày: (\d{4}-\d{2}-\d{2})", item["content"])
+            return match.group(1) if match else "0000-00-00"
+            
+        sorted_data = sorted(sheet_data, key=get_date, reverse=True)
+        latest = [item["content"] for item in sorted_data[:limit]]
+        
+        return "\n---\n".join(latest)
 
-        return "\n---\n".join(formatted_results)
+    def get_notifications(self, limit: int = 5) -> str:
+        """
+        Lấy danh sách các thông báo mới nhất từ nhà trường.
+        """
+        sheet_data = self._filter_by_sheet("Thông báo")
+        if not sheet_data:
+            return "Hiện không có thông báo nào mới."
+            
+        # Limit the results
+        latest = [item["content"] for item in sheet_data[:limit]]
+        return "\n---\n".join(latest)
 
+    def get_contact_info(self, name: str) -> str:
+        """
+        Lấy thông tin liên lạc (Email, Số điện thoại) của một người cụ thể (giáo viên hoặc phụ huynh).
+        """
+        # Note: double space in "Parent  Guardian Information" as seen in rag_data.json
+        sheets = ["Teacher Information", "Parent  Guardian Information"]
+        found_records = []
+        
+        for sheet_name in sheets:
+            sheet_data = self._filter_by_sheet(sheet_name)
+            for item in sheet_data:
+                if name.lower() in item["content"].lower():
+                    found_records.append(item["content"])
+                    
+        if not found_records:
+            return f"Không tìm thấy thông tin liên lạc cho '{name}'."
+            
+        return "\n---\n".join(found_records)
 
-_vinschool_tools: Optional[VinschoolTools] = None
+    def general_search(self, query: str) -> str:
+        """Tìm kiếm thông tin chung bằng RAG."""
+        if self.rag_service:
+            results = self.rag_service.query(query, top_k=3)
+            if not results:
+                return "Không tìm thấy thông tin liên quan."
+                
+            formatted_results = []
+            for res in results:
+                formatted_results.append(f"Nguồn: {res['metadata'].get('sheet', 'Chung')}\n{res['content']}")
+                
+            return "\n---\n".join(formatted_results)
+        return "Hiện chưa hỗ trợ tìm kiếm nâng cao (RAG Service không khả dụng)."
 
+# Global helper instance
+_vinschool_tools = None
 
-def get_vinschool_tools() -> VinschoolTools:
+def get_vinschool_tools():
     global _vinschool_tools
     if _vinschool_tools is None:
         _vinschool_tools = VinschoolTools()

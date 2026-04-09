@@ -7,6 +7,8 @@
 <meta http-equiv="Pragma" content="no-cache">
 <title>VinSchool One</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230F2E96'/%3E%3Ctext x='16' y='22' text-anchor='middle' fill='white' font-size='16' font-family='system-ui'%3EV%3C/text%3E%3C/svg%3E">
+<!-- Added marked.js for Markdown rendering -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 body {
@@ -1718,25 +1720,64 @@ function retryAiMessage(btn) {
   }, 900);
 }
 
-// AI chat: simulate sending a message
-function sendMsg(text) {
+// AI chat: call real FastAPI backend
+async function sendMsg(text) {
   if (!text || !text.trim()) return;
   hideAiChatParentTips();
   __aiChatExchangeCount += 1;
   const trimmed = text.trim();
   const wrap = document.getElementById('aiChatWrap');
   const typing = document.getElementById('typingIndicator');
+  
   // Add user bubble
   const ub = document.createElement('div');
   ub.className = 'bubble-user';
   ub.textContent = trimmed;
   wrap.insertBefore(ub, typing);
   document.getElementById('chatInput').value = '';
-  // Show typing, then AI fallback reply
+  
+  // Show typing indicator
   if (typing) typing.style.display = 'flex';
   wrap.scrollTop = wrap.scrollHeight;
-  setTimeout(() => {
+
+  try {
+    // Call Python Backend
+    const response = await fetch('http://localhost:8000/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: text })
+    });
+
+    if (!response.ok) throw new Error('Cổng kết nối AI bị lỗi');
+    const data = await response.json();
+
+    // Hide typing indicator
     if (typing) typing.style.display = 'none';
+
+    // Add AI bubble with Markdown rendering
+    const ab = document.createElement('div');
+    ab.className = 'bubble-ai-wrap';
+    
+    // Use marked.js to parse the response
+    const renderedHtml = marked.parse(data.reply);
+    
+    ab.innerHTML = `
+      <div class="bubble-ai-avatar">🤖</div>
+      <div class="bubble-ai">
+        ${renderedHtml}
+        <div class="ai-source-badge" style="margin-top:6px;">📊 Dữ liệu thời gian thực · Vin-Assistant</div>
+      </div>
+    `;
+    wrap.insertBefore(ab, typing);
+    wrap.scrollTop = wrap.scrollHeight;
+  } catch (error) {
+    if (typing) typing.style.display = 'none';
+    const eb = document.createElement('div');
+    eb.className = 'bubble-ai-wrap';
+    eb.innerHTML = `<div class="bubble-ai-avatar">⚠️</div><div class="bubble-ai">Lỗi: ${error.message}. Hãy đảm bảo server Python (server.py) đang chạy.</div>`;
+    wrap.insertBefore(eb, typing);
+    wrap.scrollTop = wrap.scrollHeight;
+  }
     appendVinAssistantReplyBubble(
       'Mình đã nhận câu hỏi. <strong>Bản prototype HTML</strong> chưa nối API: câu trả lời thật (RAG / Gemini / dữ liệu app) sẽ hiển thị ở đây sau khi tích hợp.' +
         '<div class="ai-source-badge" style="margin-top:8px;">💬 Đã nhận: ' +
