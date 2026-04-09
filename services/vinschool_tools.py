@@ -2,6 +2,8 @@ import json
 import os
 import re
 from typing import List, Dict, Any, Optional
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 # Attempt to import rag_service, or use a placeholder if not found
 try:
@@ -24,6 +26,7 @@ class VinschoolTools:
             
         self.chunks = []
         self._rag_service = None
+        self.tz = ZoneInfo("Asia/Ho_Chi_Minh")
         self.load_data()
 
     @property
@@ -115,13 +118,101 @@ class VinschoolTools:
             
         return "\n---\n".join(menu_items)
 
+    def get_timetable(self, weekday: Optional[int] = None) -> str:
+        """
+        Lấy thời khoá biểu theo thứ trong tuần.
+        weekday: 2..6 tương ứng Thứ 2..Thứ 6. Nếu không truyền sẽ dùng "hôm nay" theo múi giờ Việt Nam.
+        """
+        if weekday is None:
+            # Python isoweekday(): Mon=1..Sun=7 → map Mon..Fri to 2..6 labels used in data
+            iso = datetime.now(self.tz).isoweekday()
+            weekday = iso + 1  # Mon(1)->2, Tue(2)->3, ..., Fri(5)->6
+
+        if weekday not in (2, 3, 4, 5, 6):
+            return "Vui lòng chọn thứ từ Thứ 2 đến Thứ 6 (weekday=2..6)."
+
+        sheet_data = self._filter_by_sheet("Thời khoá biểu")
+        if not sheet_data:
+            return "Không tìm thấy dữ liệu thời khoá biểu."
+
+        day_label = f"Thứ {weekday}"
+        out: List[str] = []
+
+        for item in sheet_data:
+            content = item.get("content", "")
+            # Extract period & time for context
+            period = None
+            time_range = None
+            m1 = re.search(r"-\s*Tiết:\s*(.+)", content)
+            if m1:
+                period = m1.group(1).strip()
+            m2 = re.search(r"-\s*Thời gian:\s*([0-9]{2}:[0-9]{2}\s*-\s*[0-9]{2}:[0-9]{2})", content)
+            if m2:
+                time_range = m2.group(1).strip()
+
+            # Find the subject for the requested weekday inside this chunk
+            # Content uses lines like "- Thứ 2: <môn>\n\n(Teacher)"
+            subj_match = re.search(rf"-\s*{re.escape(day_label)}:\s*(.+)", content)
+            if not subj_match:
+                continue
+            subject = subj_match.group(1).strip()
+
+            header = []
+            if period is not None:
+                header.append(f"Tiết: {period}")
+            if time_range is not None:
+                header.append(f"Thời gian: {time_range}")
+
+            if header:
+                out.append(f"{' · '.join(header)}\n- {day_label}: {subject}")
+            else:
+                out.append(f"- {day_label}: {subject}")
+
+        if not out:
+            return f"Không có dữ liệu thời khoá biểu cho {day_label}."
+
+        return "\n---\n".join(out)
+
     def get_tuition_info(self, student_id: str = "VS108245") -> str:
         """Lấy thông tin học phí và các khoản phí."""
         sheet_data = self._filter_by_sheet("Học phí")
         if not sheet_data:
             return "Không tìm thấy dữ liệu học phí."
-        
-        return "\n---\n".join([item["content"] for item in sheet_data])
+
+        # Chuẩn hoá để AI có thể trả lời dễ đọc mà vẫn giữ nguyên số liệu.
+        # Định dạng dữ liệu trong rag_data.json theo dạng:
+        # "Dữ liệu từ bảng: Học phí\n- <tên khoản>\n- <đã nộp>\n- <tổng phải nộp>"
+        entries: List[str] = []
+        total_entry: str | None = None
+
+        def _fmt_vnd_like_number(s: str) -> str:
+            # Chỉ format khi là số nguyên dương dạng chữ số thuần.
+            # Ví dụ: "85320000" -> "85.320.000"
+            t = s.strip()
+            if not t.isdigit():
+                return s
+            return f"{int(t):,}".replace(",", ".")
+
+        for item in sheet_data:
+            content = item.get("content", "")
+            lines = [ln.strip() for ln in content.splitlines() if ln.strip()]
+            fields = [ln[2:].strip() for ln in lines if ln.startswith("- ")]
+            if len(fields) < 3:
+                # Fallback giữ nguyên content nếu cấu trúc không như kỳ vọng
+                entries.append(content)
+                continue
+
+            name, paid, due = fields[0], _fmt_vnd_like_number(fields[1]), _fmt_vnd_like_number(fields[2])
+            line = f"- **{name}**: {paid} / {due}"
+            if name.strip().lower() == "tổng số tiền":
+                total_entry = line
+            else:
+                entries.append(line)
+
+        header = "Chào phụ huynh, dưới đây là **thông tin học phí** của con (định dạng: **Học kỳ 1 / Cả năm**):"
+        body = "\n".join(entries)
+        total = f"\n\n{total_entry}" if total_entry else ""
+        return f"{header}\n\n{body}{total}"
 
     def get_teacher_comments(self, date_str: Optional[str] = None) -> str:
         """Lấy nhận xét của giáo viên."""

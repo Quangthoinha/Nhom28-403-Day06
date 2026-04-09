@@ -4,48 +4,109 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-VinSchool One "Smart Hub" — a hackathon concept (AI20K track: VinUni-VinSchool, April 2026) that adds an AI conversational layer on top of the existing VinSchool One parent mobile app. The goal: instead of parents hunting through tabs, data surfaces proactively via chat, voice, and smart notifications.
+VinSchool One "Smart Hub" — hackathon prototype (AI20K, VinUni-VinSchool, April 2026). Adds an AI conversational layer to the VinSchool One parent app: conversational search, smart daily digest, and actionable notification summaries.
 
-**Current state:** Pre-development. The repo contains only specifications, a user flow diagram, mock data, and UI mockup screenshots. No implementation code exists yet.
+**Student in demo:** Nguyễn Hưng · Mã: VS108245 · Lớp 5B06 · Trường Tiểu học Vinschool Timescity T36
 
-## Three Core Features
+## Running the Project
 
-1. **Vin-Assistant** — Conversational search (text/voice). NLP classifies intent + entities, calls internal APIs, returns visual summary cards with deep-links back to the original app screens.
-2. **Smart Daily Brief** — Replaces 5+ scattered push notifications with a single LLM-summarized digest sent at 19:00 each day.
-3. **Actionable Notifications** — LLM extracts 3 bullet points (What? Deadline? Action?) from long school notices, with a "Read full text" fallback.
-
-## Architecture Flow
-
-```
-Parent (text/voice)
-  → NLP: Intent classification + Entity extraction
-      ├─ Financial/Grade intent  → Hard-coded UI table (NO LLM generation)
-      ├─ General info intent     → API calls → LLM summary → Visual card + deep-link
-      └─ Low confidence          → Error message + 3 suggested topics
+**Frontend prototype only (no AI):**
+```bash
+python3 -m http.server 8080
+# open http://localhost:8080/prototype.html
 ```
 
-All responses must include a deep-link button to the original data screen (grounding/trust strategy).
+**Full stack (prototype + AI backend):**
+```bash
+# Terminal 1 — FastAPI backend (port 5050, NOT 8000)
+source .venv/bin/activate
+python server.py
+
+# Terminal 2 — static file server for prototype
+python3 -m http.server 8080
+```
+
+> `prototype.html` hardcodes `fetch('http://localhost:8000/chat')` — if the backend runs on 5050 (default in `server.py`), update the fetch URL in the prototype or change `server.py` port to 8000.
+
+**Rebuild FAISS semantic index** (after editing `rag_data.json`):
+```bash
+python3 build_rag_index.py
+```
+
+**Run tests:**
+```bash
+python -m pytest test_vinschool_tools.py test_vinschool_agent.py -v
+```
+
+**Ingest new notifications into RAG data:**
+```bash
+python scripts/ingest_notifications.py
+```
+
+## Architecture
+
+```
+prototype.html  (single-file mobile UI, 19 screens)
+    │  fetch POST /chat
+    ▼
+server.py       (FastAPI, CORS open, port 5050)
+    │
+    ▼
+services/vinschool_agent.py  (VinschoolAgent class, Gemini function-calling)
+    │  tool dispatch
+    ▼
+services/vinschool_tools.py  (VinschoolTools — reads rag_data.json)
+    │  general_search only
+    ▼
+services/rag_service.py      (keyword BM25 fallback; FAISS+SentenceTransformer if faiss_index.bin exists)
+    │
+    └──► data/rag_data.json  (chunked JSON from xlsx mockdata)
+```
+
+### Agent Tool Map
+
+Each tool in `vinschool_tools.py` reads a specific sheet from `rag_data.json`:
+
+| Tool | Sheet key in rag_data.json |
+|------|---------------------------|
+| `get_student_profile` | `Student Information` |
+| `get_attendance` | `Điểm danh` |
+| `get_homework` | `Bài tập` |
+| `get_menu` | `Thực đơn` |
+| `get_tuition_info` | `Học phí` |
+| `get_grades` | `Kết quả học tập` |
+| `get_latest_comments` | `Nhận xét` |
+| `get_notifications` | `Thông báo` |
+| `get_contact_info` | `Teacher Information`, `Parent  Guardian Information` (double space!) |
+| `general_search` | RAG across all chunks |
+
+### Prototype UI Routing (`prototype.html`)
+
+Navigation is driven by a JS router with three constructs:
+- `MAIN[]` — screens that show the top app header
+- `TAB_MAP{}` — maps tab names to their page IDs
+- `goTo(id)` / `goBack()` / `switchTab(tab)` — navigation functions
+
+AI-specific screens: `page-ai-search`, `page-ai-chat`, `page-ai-brief`.
+
+The chat input calls `sendMsg()` → `fetch('/chat')` → renders markdown via `marked.js` → calls `renderAiChatFollowUp(userText, aiReplyText)` which generates contextual follow-up chips via `pickFollowUpQueries()`.
 
 ## Critical Constraints
 
-- **No LLM for financial or grade data.** Hallucinating a tuition amount (e.g., 110.520.000đ → 110.000đ) is a fatal error. For tuition/scores, AI only routes to the correct hard-coded UI screen.
-- **StudentID scoping.** Every prompt/API call must be scoped to the currently selected student (multi-child families). Never mix data between students.
-- **Vietnamese synonym mapping.** Build a domain-specific synonym dictionary before NLP processing (e.g., "tiền ăn trưa" = "Phí dịch vụ bán trú", "Toán tiếng anh" = "CIE Maths").
-- **Latency target:** < 1 second for lookup queries.
+- **No LLM generation for financial/grade numbers.** For tuition and scores, the agent must only route to the hard-coded UI screen — never summarize or paraphrase numeric values.
+- **Student scoping.** All tool calls are implicitly scoped to VS108245 (Nguyễn Hưng). The system prompt must inject student ID + name so the model never calls a tool for the wrong student.
+- **The `Parent  Guardian Information` sheet name has a double space** — match exactly when filtering by sheet.
+- **Agent is a singleton** (`get_vinschool_agent()`). Chat history accumulates within a server session; restarting the server resets history.
 
-## Key Files
+## Environment
 
-| File | Purpose |
-|------|---------|
-| `Spec_draft.md` | Full product spec: AI canvas, user stories, failure modes, ROI |
-| `Userflow.md` | Mermaid diagram of the Vin-Assistant interaction flow |
-| `AI20K_VinSchoolOne_Mockdata.xlsx` | Mock data: students, courses, assignments, menus, tuition, attendance |
-| `IMG_*.webp / *.png` | UI mockup screenshots of current app screens |
+`.env` file (not committed):
+```
+GOOGLE_API_KEY=...
+GOOGLE_CLOUD_PROJECT=our-audio-472409-e5
+GOOGLE_CLOUD_LOCATION=global
+```
 
-## Success Metrics
+The client uses `vertexai=False` (Google AI Studio API key), not Vertex AI service account auth.
 
-| Metric | Target | Red Flag |
-|--------|--------|----------|
-| Time-to-Information | < 10 seconds | > 4 clicks required |
-| Search Success Rate | > 85% | < 70% |
-| Notification Open Rate | > 60% (Smart Daily Brief) | Users disable push notifications |
+Current model: `gemini-3-1-flash-lite` (set in `VinschoolAgent.__init__`).

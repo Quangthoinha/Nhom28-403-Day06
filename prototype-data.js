@@ -287,19 +287,22 @@ function groupMenuByDay(rows) {
   const sorted = sortByRow(rows);
   const days = [];
   let cur = null;
+  let curMeal = '';
   for (const row of sorted) {
     const c = row.content;
     const dm = c.match(/Ngày:[^\n]*(\d{2}\/\d{2}\/\d{4})/);
     if (dm) {
       if (cur) days.push(cur);
       cur = { date: dm[1], items: [] };
+      curMeal = '';
     }
     if (cur && c.includes('Tên món ăn')) {
-      const meal = extractField(c, 'Bữa ăn') || '';
+      const mealField = extractField(c, 'Bữa ăn') || '';
+      if (mealField) curMeal = mealField;
       const name = extractField(c, 'Tên món ăn');
       const km = c.match(/Năng lượng[^:]*:\s*([^\n]+)/);
       const kcal = km ? km[1].trim() : '';
-      if (name) cur.items.push({ meal, name, kcal });
+      if (name) cur.items.push({ meal: curMeal, name, kcal });
     }
   }
   if (cur) days.push(cur);
@@ -844,28 +847,34 @@ function renderWeekStrips() {
   }
   const schedEl = document.getElementById('schedule-week-days');
   const menuEl = document.getElementById('menu-week-days');
+  const attEl = document.getElementById('att-week-days');
   if (schedEl) schedEl.innerHTML = inner;
   if (menuEl) menuEl.innerHTML = inner;
+  if (attEl) attEl.innerHTML = inner;
   const ml = document.getElementById('schedule-month-label');
   const ml2 = document.getElementById('menu-month-label');
+  const ml3 = document.getElementById('att-month-label');
   if (ml) ml.textContent = rangeLabel;
   if (ml2) ml2.textContent = rangeLabel;
+  if (ml3) ml3.textContent = rangeLabel;
 }
 
-function protoRefreshScheduleMenuOnly() {
+function protoRefreshScheduleMenuAttendance() {
   const b = window.__protoRagBundle;
   if (!b) return;
   renderWeekStrips();
   const v = window.__protoViewingDate || getTodayStr();
   const schedRoot = document.getElementById('schedule-periods-root');
   const menuRoot = document.getElementById('menu-root');
+  const attRoot = document.getElementById('attendance-root');
   if (schedRoot) renderSchedule(schedRoot, b.tkb, v);
   if (menuRoot) renderMenu(menuRoot, b.menuDays, v);
+  if (attRoot) renderAttendance(attRoot, b.att, v);
 }
 
 window.protoSelectDay = function (dmy) {
   window.__protoViewingDate = dmy;
-  protoRefreshScheduleMenuOnly();
+  protoRefreshScheduleMenuAttendance();
 };
 
 window.protoShiftWeek = function (delta) {
@@ -873,7 +882,7 @@ window.protoShiftWeek = function (delta) {
   const d = parseDateDMY(cur);
   d.setDate(d.getDate() + 7 * delta);
   window.__protoViewingDate = toDMY(d);
-  protoRefreshScheduleMenuOnly();
+  protoRefreshScheduleMenuAttendance();
 };
 
 function updateHomeBanner(todayStr, menuDays, hwRows) {
@@ -1084,7 +1093,7 @@ window.initPrototypeFromRag = async function initPrototypeFromRag() {
   if (schedRoot) renderSchedule(schedRoot, tkb, window.__protoViewingDate);
 
   const attRoot = document.getElementById('attendance-root');
-  if (attRoot) renderAttendance(attRoot, att, anchorToday);
+  if (attRoot) renderAttendance(attRoot, att, window.__protoViewingDate);
 
   const menuRoot = document.getElementById('menu-root');
   if (menuRoot) renderMenu(menuRoot, menuDays, window.__protoViewingDate);

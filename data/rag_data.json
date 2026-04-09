@@ -416,6 +416,262 @@
     }
   },
   {
+    "id": "Điểm danh_40",
+    "content": "Dữ liệu từ bảng: Điểm danh\n- Ngày: Thứ 2 - 06/04/2026\n- Điểm danh đầu giờ: 8:00 - Đúng giờ\n- Thời gian: 8:00-8:35\n- Môn học: Sinh hoạt chủ nhiệm-5B06\n- Trạng thái tiết học: Đúng giờ",
+    "metadata": {
+      "sheet": "Điểm danh",
+      "row": 40
+    }
+  },
+  {
+    "id": "Điểm danh_41",
+    "content": "Dữ liệu từ bảng: Điểm danh\n- Thời gian: 8:40-9:15\n- Môn học: Tiếng Việt-5B06\n- Trạng thái tiết học: Đúng giờ",
+    "metadata": {
+      "sheet": "Điểm danh",
+      "row": 41
+    }
+  },
+  {
+    "id": "Điểm danh_42",
+    "content": "Dữ liệu từ bảng: Điểm danh\n- Thời gian: 9:30-10:05\n- Môn học: CIE Maths-5B06\n- Trạng thái tiết học: Đúng giờ",
+    "metadata": {
+      "sheet": "Điểm danh",
+      "row": 42
+    }
+  },
+  {
+    "id": "Điểm danh_43",
+    "content": "Dữ liệu từ bảng: Điểm danh\n- Thời gian: 10:10-10:45\n- Môn học: CIE Maths-5B06\n- Trạng thái tiết học: Tiết kép",
+    "metadata": {
+      "sheet": "Điểm danh",
+      "row": 43
+    }
+  },
+  {
+    "id": "Điểm danh_44",
+    "content": "Dữ liệu từ bảng: Điểm danh\n- Thời gian: 12:25-13:00\n- Môn học: CIE ESL-5B06\n- Trạng thái tiết học: Đúng giờ",
+    "metadata": {
+      "sheet": "Điểm danh",
+      "row": 44
+    }
+  },
+  {
+    "id": "Điểm danh_45",
+    "content": "Dữ liệu từ bảng: Điểm danh\n- Thời gian: 13:05-13:40\n- Môn học: Lịch sử và Địa lý-5B06\n- Trạng thái tiết học: Đúng giờ",
+    "metadata": {
+      "sheet": "Điểm danh",
+      "row": 45
+    }
+  },
+  {
+    "id": "Điểm danh_46",
+    "content": "Dữ liệu từ bảng: Điểm danh\n- Thời gian: 13:55-14:30\n- Môn học: Việt Nam học-5B06\n- Trạng thái tiết học: Đúng giờ",
+    "metadata": {
+      "sheet": "Điểm danh",
+      "row": 46
+    }
+  },
+  {
+    "id": "Điểm danh_47",
+    "content": "Dữ liệu từ bảng: Điểm danh\n- Thời gian: 14:35-15:10\n- Môn học: Tự học có hướng dẫn-5B06\n- Trạng thái tiết học: Đúng giờ",
+    "metadata": {
+      "sheet": "Điểm danh",
+      "row": 47
+    }
+  },
+  {
+    "id": "Điểm danh_48",
+    "content": "Dữ liệu từ bảng: Điểm danh\n- Ngày: Thứ 3 - 07/04/2026\n- Điểm danh đầu giờ: 8:00 - Đúng giờ\n- Thời gian: 8:00-8:35\n- Môn học: CIE ESL-5B06\n- Trạng thái tiết học: Đúng giờ",
+    "metadata": {
+      "sheet": "Điểm danh",
+      "row": 48
+    }
+  },
+  {
+    "id": "Điểm danh_49",
+    "content": "Dữ liệu từ bảng: Điểm danh\n- Thời gian: 8:40-9:15\n- Môn học: Tiếng Việt-5B06\n- Trạng thái tiết học: Đúng giờ",
+    "metadata": {
+      "sheet": "Điểm danh",
+      "row": 49
+    }
+  },
+  {
+    "id": "Điểm danh_50",
+    "content": "Dữ liệu từ bảng: Điểm danh\n- Thời gian: 9:30-10:05\n- Môn học: CIE ICT-5B06\n- Trạng thái tiết học: Đúng giờ",
+    "metadata": {
+      "sheet": "Điểm danh",
+      "row": 50
+    }
+  },
+  {
+    "id": "Điểm danh_51",
+    "content": "Dữ liệu từ bảng: Điểm danh\n- Thời gian: 10:10-10:45\n- Môn học: Âm nhạc-5B06\n- Trạng thái tiết học: Đúng giờ",
+    "metadata": {
+      "sheet": "Điểm danh",
+      "row": 51
+    }
+  },
+  {
+    "id": "Điểm danh_52",
+    "content": "Dữ liệu từ bảng: Điểm danh\n- Thời gian: 12:25-13:00\n- Môn học: CIE Maths-5B06\n- Trạng thái tiết học: Đúng giờ",
+    "metadata": {
+      "sheet": "Điểm danh",
+      "row": 52
+    }
+  },
+  {
+    "id": "Điểm danh_53",
+    "content": "Dữ liệu từ bảng: Điểm danh\n- Thời gian: 13:05-13:40\n- Môn học: Việt Nam học-5B06\n- Trạng thái tiết học: Đúng giờ",
+    "metadata": {
+      "sheet": "Điểm danh",
+      "row": 53
+    }
+  },
+  {
+    "id": "Điểm danh_54",
+    "content": "Dữ liệu từ bảng: Điểm danh\n- Thời gian: 13:55-14:30\n- Môn học: Tiết Đọc sách-5B06\n- Trạng thái tiết học: Đúng giờ",
+    "metadata": {
+      "sheet": "Điểm danh",
+      "row": 54
+    }
+  },
+  {
+    "id": "Điểm danh_55",
+    "content": "Dữ liệu từ bảng: Điểm danh\n- Thời gian: 14:35-15:10\n- Môn học: CLB Kỹ năng-5B06\n- Trạng thái tiết học: Đúng giờ",
+    "metadata": {
+      "sheet": "Điểm danh",
+      "row": 55
+    }
+  },
+  {
+    "id": "Điểm danh_56",
+    "content": "Dữ liệu từ bảng: Điểm danh\n- Ngày: Thứ 4 - 08/04/2026\n- Điểm danh đầu giờ: 8:02 - Đi muộn\n- Thời gian: 8:00-8:35\n- Môn học: CIE ESL-5B06\n- Trạng thái tiết học: Đi muộn",
+    "metadata": {
+      "sheet": "Điểm danh",
+      "row": 56
+    }
+  },
+  {
+    "id": "Điểm danh_57",
+    "content": "Dữ liệu từ bảng: Điểm danh\n- Thời gian: 8:40-9:15\n- Môn học: CIE ESL-5B06\n- Trạng thái tiết học: Tiết kép",
+    "metadata": {
+      "sheet": "Điểm danh",
+      "row": 57
+    }
+  },
+  {
+    "id": "Điểm danh_58",
+    "content": "Dữ liệu từ bảng: Điểm danh\n- Thời gian: 9:30-10:05\n- Môn học: CIE Science-5B06\n- Trạng thái tiết học: Đúng giờ",
+    "metadata": {
+      "sheet": "Điểm danh",
+      "row": 58
+    }
+  },
+  {
+    "id": "Điểm danh_59",
+    "content": "Dữ liệu từ bảng: Điểm danh\n- Thời gian: 10:10-10:45\n- Môn học: CIE Science-5B06\n- Trạng thái tiết học: Tiết kép",
+    "metadata": {
+      "sheet": "Điểm danh",
+      "row": 59
+    }
+  },
+  {
+    "id": "Điểm danh_60",
+    "content": "Dữ liệu từ bảng: Điểm danh\n- Thời gian: 12:25-13:00\n- Môn học: CIE Maths-5B06\n- Trạng thái tiết học: Đúng giờ",
+    "metadata": {
+      "sheet": "Điểm danh",
+      "row": 60
+    }
+  },
+  {
+    "id": "Điểm danh_61",
+    "content": "Dữ liệu từ bảng: Điểm danh\n- Thời gian: 13:05-13:40\n- Môn học: Tiếng Việt-5B06\n- Trạng thái tiết học: Đúng giờ",
+    "metadata": {
+      "sheet": "Điểm danh",
+      "row": 61
+    }
+  },
+  {
+    "id": "Điểm danh_62",
+    "content": "Dữ liệu từ bảng: Điểm danh\n- Thời gian: 13:55-14:30\n- Môn học: Giáo dục thể chất-5B06\n- Trạng thái tiết học: Đúng giờ",
+    "metadata": {
+      "sheet": "Điểm danh",
+      "row": 62
+    }
+  },
+  {
+    "id": "Điểm danh_63",
+    "content": "Dữ liệu từ bảng: Điểm danh\n- Thời gian: 14:35-15:10\n- Môn học: Giáo dục thể chất-5B06\n- Trạng thái tiết học: Tiết kép",
+    "metadata": {
+      "sheet": "Điểm danh",
+      "row": 63
+    }
+  },
+  {
+    "id": "Điểm danh_64",
+    "content": "Dữ liệu từ bảng: Điểm danh\n- Ngày: Thứ 5 - 09/04/2026\n- Điểm danh đầu giờ: 8:00 - Đúng giờ\n- Thời gian: 8:00-8:35\n- Môn học: CIE ESL-5B06\n- Trạng thái tiết học: Đúng giờ",
+    "metadata": {
+      "sheet": "Điểm danh",
+      "row": 64
+    }
+  },
+  {
+    "id": "Điểm danh_65",
+    "content": "Dữ liệu từ bảng: Điểm danh\n- Thời gian: 8:40-9:15\n- Môn học: Tiếng Việt-5B06\n- Trạng thái tiết học: Đúng giờ",
+    "metadata": {
+      "sheet": "Điểm danh",
+      "row": 65
+    }
+  },
+  {
+    "id": "Điểm danh_66",
+    "content": "Dữ liệu từ bảng: Điểm danh\n- Thời gian: 9:30-10:05\n- Môn học: Giáo dục thể chất-5B06\n- Trạng thái tiết học: Đúng giờ",
+    "metadata": {
+      "sheet": "Điểm danh",
+      "row": 66
+    }
+  },
+  {
+    "id": "Điểm danh_67",
+    "content": "Dữ liệu từ bảng: Điểm danh\n- Thời gian: 10:10-10:45\n- Môn học: GD Kỹ năng Phẩm chất-5B06\n- Trạng thái tiết học: Đúng giờ",
+    "metadata": {
+      "sheet": "Điểm danh",
+      "row": 67
+    }
+  },
+  {
+    "id": "Điểm danh_68",
+    "content": "Dữ liệu từ bảng: Điểm danh\n- Thời gian: 12:25-13:00\n- Môn học: CIE Maths-5B06\n- Trạng thái tiết học: Đúng giờ",
+    "metadata": {
+      "sheet": "Điểm danh",
+      "row": 68
+    }
+  },
+  {
+    "id": "Điểm danh_69",
+    "content": "Dữ liệu từ bảng: Điểm danh\n- Thời gian: 13:05-13:40\n- Môn học: Việt Nam học-5B06\n- Trạng thái tiết học: Đúng giờ",
+    "metadata": {
+      "sheet": "Điểm danh",
+      "row": 69
+    }
+  },
+  {
+    "id": "Điểm danh_70",
+    "content": "Dữ liệu từ bảng: Điểm danh\n- Thời gian: 13:55-14:30\n- Môn học: CIE ICT-5B06\n- Trạng thái tiết học: Đúng giờ",
+    "metadata": {
+      "sheet": "Điểm danh",
+      "row": 70
+    }
+  },
+  {
+    "id": "Điểm danh_71",
+    "content": "Dữ liệu từ bảng: Điểm danh\n- Thời gian: 14:35-15:10\n- Môn học: Tự học có hướng dẫn-5B06\n- Trạng thái tiết học: Đúng giờ",
+    "metadata": {
+      "sheet": "Điểm danh",
+      "row": 71
+    }
+  },
+  {
     "id": "Bài tập_0",
     "content": "Dữ liệu từ bảng: Bài tập\n- Tuần: 30/03 - 05/04\n- Hạn nộp dự kiến: 2026-03-30 00:00:00\n- Mã lớp / Môn học: CIE ESL-5B06\n- Tên bài tập / Kiểm tra: Vocabulary Quiz Unit 7\n- Trạng thái: Đã làm\n- Điểm số: 10/10 Điểm",
     "metadata": {

@@ -555,6 +555,25 @@ body {
   border:1px solid #e5e7eb; border-radius:8px; padding:2px 8px; margin-top:8px;
 }
 
+/* Nút "Xem nguồn" sau trả lời AI */
+.ai-deeplinks {
+  display:flex; flex-wrap:wrap; gap:8px;
+  margin-top:10px;
+}
+.ai-deeplink-chip {
+  border:1.5px solid #c7d2fe;
+  background:#eef2ff;
+  color:#3730a3;
+  border-radius:14px;
+  padding:7px 10px;
+  font-size:11.5px;
+  font-weight:700;
+  cursor:pointer;
+  font-family:inherit;
+}
+.ai-deeplink-chip:hover { background:#e0e7ff; border-color:#a5b4fc; }
+.ai-deeplink-chip:active { background:#c7d2fe; }
+
 /* AI Chat screen */
 .ai-chat-wrap { flex:1; overflow-y:auto; padding:12px 14px 8px; display:flex; flex-direction:column; gap:12px; }
 .ai-chat-wrap::-webkit-scrollbar { display:none; }
@@ -885,7 +904,11 @@ body {
 <!-- ══════════════════════ ATTENDANCE ══════════════════════ -->
 <div class="page" id="page-attendance">
   <div class="sub-header"><span class="sub-back" onclick="goBack()">←</span><span class="sub-title">Chuyên cần</span></div>
-  <div class="att-date-bar" id="att-date-bar">📅 09/04/2026 – 09/04/2026</div>
+  <div class="week-strip">
+    <div class="month-row"><span style="cursor:pointer;user-select:none;padding:4px 8px;" id="att-week-prev" onclick="protoShiftWeek(-1)">‹</span> &nbsp; <span id="att-month-label">Tháng 4 2026</span> &nbsp; <span style="cursor:pointer;user-select:none;padding:4px 8px;" id="att-week-next" onclick="protoShiftWeek(1)">›</span></div>
+    <div class="days" id="att-week-days"></div>
+  </div>
+  <div class="att-date-bar" id="att-date-bar">📅 —</div>
   <div class="att-summary">
     <div class="att-stat"><div class="att-num on-time" id="att-stat-ontime">0</div><div class="att-lbl">Đúng giờ</div></div>
     <div class="att-stat"><div class="att-num late-cl" id="att-stat-late">0</div><div class="att-lbl">Đến muộn</div></div>
@@ -1431,72 +1454,136 @@ function hideAiChatParentTips() {
   if (tips) tips.style.display = 'none';
 }
 
-function pickFollowUpQueries(lastUserText) {
-  const t = (lastUserText || '').toLowerCase();
-  if (/bài tập|homework|nộp|deadline|chưa làm/i.test(t)) {
+function pickFollowUpQueries(userText, aiResponseText) {
+  const u = (userText || '').toLowerCase();
+  const r = (aiResponseText || '').toLowerCase();
+  const all = u + ' ' + r;
+
+  // ── Topic signals ──
+  const isHW       = /bài tập|quiz|project|chưa làm|deadline|nộp bài|kiểm tra|phiếu/i.test(all);
+  const isMenu     = /thực đơn|ăn trưa|bữa|kcal|cơm|phở|món ăn|canh|rau/i.test(all);
+  const isSched    = /lịch học|tiết|thời khoá|mấy giờ|tan học|ca học/i.test(all);
+  const isTuition  = /học phí|phí|tiền|đóng|thanh toán|hoàn phí/i.test(all);
+  const isGrade    = /điểm|a\*|grade|htt|ht|kết quả|cuối kỳ|giữa kỳ/i.test(all);
+  const isComment  = /nhận xét|thầy|cô giáo|giáo viên|gareth|kim anh|dương|elanza|vũ trung/i.test(all);
+  const isAttend   = /chuyên cần|điểm danh|vắng|đúng giờ|đến muộn/i.test(all);
+  const isGDTC     = /thể dục|thể chất|giày thể thao|bóng rổ/i.test(all);
+
+  // ── Subject signals ──
+  const hasTiengViet = /tiếng việt|tv tuần/i.test(all);
+  const hasMaths     = /cie maths|maths|toán/i.test(all);
+  const hasESL       = /cie esl|esl|tiếng anh/i.test(all);
+  const hasScience   = /cie science|khoa học/i.test(all);
+  const hasICT       = /cie ict|ict|máy tính|project score/i.test(all);
+  const hasLS        = /lịch sử|địa lý/i.test(all);
+
+  // ── Specific entity signals ──
+  const hasDeadlineToday = /hôm nay|09\/04/i.test(all);
+  const hasGareth = /gareth/i.test(all);
+  const hasKimAnh = /kim anh/i.test(all);
+
+  // ── Build contextual follow-ups ──
+  if (isHW) {
+    const qs = [];
+    if (hasDeadlineToday && hasTiengViet) qs.push('📌 Quiz TV Tuần 26 hạn hôm nay — nộp ở đâu trong app?');
+    if (hasTiengViet) qs.push('📊 Điểm Tiếng Việt giữa kỳ 2 của Hưng là bao nhiêu?');
+    if (hasMaths) qs.push('📊 Bài tập CIE Maths tuần này Hưng đã làm hết chưa?');
+    if (hasICT) qs.push('💻 Dự án Unit 5 ICT cần nộp những file gì?');
+    if (hasScience) qs.push('🔬 Điểm Plant Life Cycle Quiz vừa rồi được mấy?');
+    if (!hasMaths && !hasICT) qs.push('📅 Tuần tới Hưng có bài kiểm tra nào không?');
+    qs.push('📋 Bài tập tuần trước Hưng đã nộp đầy đủ chưa?');
+    qs.push('🎯 Môn nào Hưng hay bị thiếu bài nhất?');
+    return qs.slice(0, 4);
+  }
+
+  if (isMenu) {
     return [
-      'Hạn nộp từng bài cụ thể là ngày nào?',
-      'Môn nào cần ưu tiên làm trước?',
-      'Thực đơn trưa hôm nay là gì?',
-      'Ngày mai có kiểm tra không?'
+      '🔥 Tổng calo bữa trưa hôm nay là bao nhiêu kcal?',
+      '🍱 Ngày mai bữa trưa có gì?',
+      '🥗 Tuần này ngày nào có thực đơn nhiều rau xanh nhất?',
+      '🍗 Ăn phụ buổi chiều hôm nay có gì không?',
+    ].slice(0, 4);
+  }
+
+  if (isSched && isGDTC) {
+    return [
+      '👟 Hưng có cần mang giày thể thao đặc biệt không?',
+      '📋 Bài tập GD Thể chất có không hay chỉ thực hành?',
+      '📅 Tuần tới thứ mấy cũng có tiết thể dục?',
+      '🏫 Tiết cuối cùng hôm nay tan lúc mấy giờ?',
     ];
   }
-  if (/ăn|thực đơn|menu|trưa|bữa/i.test(t)) {
+
+  if (isSched) {
     return [
-      'Tuần này còn bài tập nào chưa làm?',
-      'Chiều nay có hoạt động ngoại khóa không?',
-      'Điểm các môn gần nhất?',
-      'Hôm nay có tiết thể dục không?'
+      '🏫 Giờ tan học hôm nay là mấy giờ?',
+      '📚 Tiết cuối cùng hôm nay học môn gì?',
+      '📅 Thứ nào trong tuần Hưng có nhiều tiết nhất?',
+      '🎒 Ngày mai cần mang đồ dùng học tập gì đặc biệt?',
     ];
   }
-  if (/lịch|tiết|thể dục|mấy giờ|thời khoá/i.test(t)) {
+
+  if (isTuition) {
     return [
-      'Giờ tan học hôm nay là mấy giờ?',
-      'Sáng mai có cần mang đồ gì đặc biệt?',
-      'Tuần này còn bài tập nào chưa làm?',
-      'Hôm nay ăn trưa gì ở trường?'
+      '💳 Khoản phí nào lớn nhất trong học phí năm nay?',
+      '💰 Nếu nộp cả năm thì tiết kiệm được bao nhiêu so với từng kỳ?',
+      '⏰ Hạn nộp học phí kỳ II là khi nào?',
+      '🎁 Ưu đãi VINCLUB áp dụng cho những khoản nào?',
     ];
   }
-  if (/học phí|phí|tiền|thanh toán|đóng/i.test(t)) {
+
+  if (isGrade) {
+    const qs = [];
+    if (hasMaths) qs.push('📈 So với cuối kỳ 1 (95%), điểm CIE Maths giữa kỳ 2 tăng bao nhiêu?');
+    if (hasESL)   qs.push('🗣 Kỹ năng nào trong ESL Hưng cần cải thiện nhất?');
+    if (hasTiengViet) qs.push('📝 Bài tập Tiếng Việt tuần này đã nộp đủ chưa?');
+    if (hasScience) qs.push('🔬 Bài lab report CIE Science được đánh giá ra sao?');
+    qs.push('🎯 Môn nào Hưng đang có điểm thấp nhất học kỳ này?');
+    qs.push('📅 Lịch kiểm tra giữa kỳ hoặc cuối kỳ sắp tới là khi nào?');
+    return qs.slice(0, 4);
+  }
+
+  if (isComment) {
+    const qs = [];
+    if (hasGareth) {
+      qs.push('📚 Bài tập CIE Maths hay CIE Science tuần này Hưng còn nợ không?');
+      qs.push('📊 Thầy Gareth đánh giá Hưng thế nào trong môn Global Perspectives?');
+    }
+    if (hasKimAnh) {
+      qs.push('📝 Cô Kim Anh nhận xét Hưng về điểm Tiếng Việt cuối kỳ ra sao?');
+      qs.push('📋 Bài Quiz TV Tuần 26 cô Kim Anh đã chấm điểm chưa?');
+    }
+    qs.push('💬 Tháng này Hưng nhận được bao nhiêu nhận xét tích cực?');
+    qs.push('⚠️ Có giáo viên nào nhận xét cần cải thiện không?');
+    qs.push('📅 Nhận xét tuần trước của thầy cô so với tuần này thế nào?');
+    return qs.slice(0, 4);
+  }
+
+  if (isAttend) {
     return [
-      'Chi tiết từng khoản phí?',
-      'Hạn đóng tiếp theo khi nào?',
-      'Điểm danh chuyên cần tuần này?',
-      'Có thông báo nợ phí không?'
+      '📅 Tháng này Hưng đi học bao nhiêu ngày đúng giờ?',
+      '🕗 Hôm nào trong tuần Hưng hay đến muộn nhất?',
+      '📋 Xin nghỉ phép cần làm thủ tục gì trong app?',
+      '📊 So với tuần trước, chuyên cần tuần này có tốt hơn không?',
     ];
   }
-  if (/điểm|điểm số|môn học/i.test(t)) {
-    return [
-      'Môn nào cần củng cố thêm?',
-      'Bài tập môn đó còn gì chưa làm?',
-      'Nhận xét gần nhất của giáo viên?',
-      'Lịch kiểm tra sắp tới?'
-    ];
-  }
-  if (/nhận xét|thầy|cô|giáo viên|dặn/i.test(t)) {
-    return [
-      'Bài tập liên quan môn đó còn hạn nào?',
-      'Điểm môn đó thế nào?',
-      'Có họp phụ huynh sắp tới không?',
-      'Lịch học hôm nay?'
-    ];
-  }
-  const pools = [
-    ['Tuần này còn bài tập nào chưa làm?', 'Hôm nay ăn gì ở trường?', 'Lịch học hôm nay thế nào?', 'Có nhận xét mới từ giáo viên không?', 'Học phí kỳ này đã đủ chưa?'],
-    ['Điểm các môn gần nhất?', 'Hưng có hoạt động CLB nào hôm nay?', 'Thông báo nhà trường mới nhất?', 'Chuyên cần tuần này ra sao?', 'Sự kiện hay ngày nghỉ sắp tới?'],
-    ['Bài kiểm tra sắp tới môn nào?', 'Cần mang đồ gì ngày mai?', 'Đón con có đổi giờ không?', 'Phí dịch vụ bán trú còn gì cần đóng?', 'Đăng ký ngoại khóa còn hạn không?']
-  ];
-  const idx = __aiFollowUpPoolRotate % pools.length;
-  __aiFollowUpPoolRotate += 1;
-  return pools[idx];
+
+  // Fallback — dùng signals nhẹ hơn
+  const qs = [];
+  if (hasTiengViet || hasMaths || hasESL) qs.push('📊 Điểm các môn CIE của Hưng kỳ này thế nào?');
+  qs.push('📋 Hôm nay Hưng có bài tập nào cần nộp không?');
+  qs.push('🍱 Thực đơn trưa hôm nay ở trường là gì?');
+  qs.push('📅 Lịch học ngày mai của Hưng thế nào?');
+  qs.push('💬 Có nhận xét mới nào từ giáo viên hôm nay không?');
+  return qs.slice(0, 4);
 }
 
-function renderAiChatFollowUp(lastUserText) {
+function renderAiChatFollowUp(lastUserText, aiResponseText) {
   __lastUserQueryForFollowUp = lastUserText || '';
   const bar = document.getElementById('aiChatFollowUpBar');
   const row = document.getElementById('aiChatFollowUpRow');
   if (!bar || !row) return;
-  const qs = pickFollowUpQueries(lastUserText);
+  const qs = pickFollowUpQueries(lastUserText, aiResponseText || '');
   row.innerHTML = '';
   qs.forEach((q) => {
     const b = document.createElement('button');
@@ -1575,6 +1662,38 @@ function aiMsgActionsHtml() {
     '</div>';
 }
 window.aiMsgActionsHtml = aiMsgActionsHtml;
+
+function aiDeeplinkButtonsHtml(lastUserText, aiResponseText) {
+  const u = (lastUserText || '').toLowerCase();
+  const r = (aiResponseText || '').toLowerCase();
+  const all = u + ' ' + r;
+
+  const isHW      = /bài tập|quiz|project|chưa làm|deadline|nộp bài|kiểm tra|phiếu/i.test(all);
+  const isMenu    = /thực đơn|ăn trưa|bữa|kcal|món ăn|canh|rau|cơm/i.test(all);
+  const isSched   = /lịch học|tiết|thời khoá|thời khóa|mấy giờ|tan học|ca học/i.test(all);
+  const isAttend  = /chuyên cần|điểm danh|vắng|đúng giờ|đến muộn/i.test(all);
+  const isComment = /nhận xét|thầy|cô giáo|giáo viên/i.test(all);
+  const isTuition = /học phí|phí|đóng|thanh toán|hoàn phí/i.test(all);
+  const isGrade   = /điểm|grade|htt|ht|kết quả|cuối kỳ|giữa kỳ/i.test(all);
+  const isNotif   = /thông báo|khảo sát|sự kiện|nhắc/i.test(all);
+
+  const btn = (label, pageId) =>
+    `<button type="button" class="ai-deeplink-chip" onclick="goTo('${pageId}')">${label} →</button>`;
+
+  const buttons = [];
+  if (isSched)   buttons.push(btn('📅 Xem lịch học', 'page-schedule'));
+  if (isMenu)    buttons.push(btn('🍱 Xem thực đơn', 'page-menu'));
+  if (isAttend)  buttons.push(btn('✅ Xem chuyên cần', 'page-attendance'));
+  if (isHW)      buttons.push(btn('📋 Mở bài tập', 'page-homework'));
+  if (isComment) buttons.push(btn('💬 Xem nhận xét', 'page-comments'));
+  if (isNotif)   buttons.push(btn('🔔 Mở thông báo', 'page-notifications'));
+  if (isGrade)   buttons.push(btn('📊 Xem kết quả học tập', 'page-results'));
+  if (isTuition) buttons.push(btn('💰 Mở học phí', 'page-tuition'));
+
+  if (!buttons.length) buttons.push(btn('🎓 Mở trang học sinh', 'page-student'));
+
+  return `<div class="ai-deeplinks" aria-label="Xem nguồn trong app">${buttons.join('')}</div>`;
+}
 
 function escapeHtmlProto(s) {
   return String(s)
@@ -1699,7 +1818,7 @@ async function sendMsg(text) {
 
   try {
     // Call Python Backend
-    const response = await fetch('http://localhost:8000/chat', {
+    const response = await fetch('http://localhost:5050/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ message: text })
@@ -1720,13 +1839,18 @@ async function sendMsg(text) {
     
     ab.innerHTML = `
       <div class="bubble-ai-avatar">🤖</div>
-      <div class="bubble-ai">
-        ${renderedHtml}
-        <div class="ai-source-badge" style="margin-top:6px;">📊 Dữ liệu thời gian thực · Vin-Assistant</div>
+      <div class="bubble-ai-stack">
+        <div class="bubble-ai">
+          ${renderedHtml}
+          <div class="ai-source-badge" style="margin-top:6px;">📊 Dữ liệu thời gian thực · Vin-Assistant</div>
+          ${aiDeeplinkButtonsHtml(trimmed, data.reply || '')}
+        </div>
+        ${aiMsgActionsHtml()}
       </div>
     `;
     wrap.insertBefore(ab, typing);
     wrap.scrollTop = wrap.scrollHeight;
+    renderAiChatFollowUp(trimmed, data.reply || '');
   } catch (error) {
     if (typing) typing.style.display = 'none';
     const eb = document.createElement('div');
@@ -1734,10 +1858,9 @@ async function sendMsg(text) {
     eb.innerHTML = `<div class="bubble-ai-avatar">⚠️</div><div class="bubble-ai">Lỗi: ${error.message}. Hãy đảm bảo server Python (server.py) đang chạy.</div>`;
     wrap.insertBefore(eb, typing);
     wrap.scrollTop = wrap.scrollHeight;
+    renderAiChatFollowUp(trimmed, '');
   }
-  // Loại bỏ đoạn mã thêm thông báo không cần thiết
-  renderAiChatFollowUp(trimmed);
-  } 1200;
+}
 
 
 function showPage(id) {
