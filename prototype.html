@@ -1169,7 +1169,11 @@ body {
             <button type="button" class="ai-act-dislike" onclick="toggleAiDislike(this)" title="Không hữu ích" aria-label="Không hữu ích">👎</button>
             <button type="button" class="ai-act-retry" onclick="retryAiMessage(this)" title="Thử lại" aria-label="Thử lại">↻</button>
             <button type="button" class="ai-act-copy" onclick="copyAiMessage(this)" title="Sao chép" aria-label="Sao chép">⎘</button>
-            <button type="button" class="ai-act-report" onclick="openReportModal(this)" title="Báo cáo nội dung" aria-label="Báo cáo"><svg class="ai-report-flag-ico" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="#dc2626" d="M4 21V3h2v1h12l-2 3.5L18 11H6v10H4zm2-9h9.3l-1.1-2 1.1-2H6v4z"/></svg></button>
+            <button type="button" class="ai-act-report" onclick="openReportModal(this)" title="Báo cáo nội dung" aria-label="Báo cáo">
+              <svg class="ai-report-flag-ico" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="#dc2626" d="M4 21V3h2v1h12l-2 3.5L18 11H6v10H4zm2-9h9.3l-1.1-2 1.1-2H6v4z"/>
+              </svg>
+            </button>
           </div>
         </div>
       </div>
@@ -1212,8 +1216,10 @@ body {
   <div class="ai-sub-header" style="flex-direction:column;align-items:flex-start;padding:14px 16px 16px;">
     <div style="display:flex;align-items:center;gap:8px;width:100%;margin-bottom:8px;">
       <span class="sub-back" onclick="goBack()">←</span>
-      <span style="font-size:15px;font-weight:700;flex:1;">Bản tin hàng ngày</span>
-      <span class="ai-badge">AI ✨</span>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span style="font-size:18px;">🤖</span>
+        <span style="color:white;font-size:15px;font-weight:700;">Vin-Assistant</span>
+      </div>
     </div>
     <div style="font-size:18px;font-weight:800;">Thứ 5, 09/04/2026</div>
     <div style="font-size:12px;opacity:.8;margin-top:2px;">Tổng hợp 5 sự kiện nổi bật trong ngày của Nguyễn Hưng</div>
@@ -1230,7 +1236,7 @@ body {
         </div>
       </div>
       <div class="brief-event-body">
-        <div class="brief-event-detail">
+        <div class="brief-event-detail"></div>
           Hưng còn <strong>4 bài tập chưa hoàn thành</strong> tuần này. Quan trọng nhất: <strong>Quiz TV Tuần 26</strong> hạn nộp hôm nay (09/04). Phụ huynh nhắc con làm sớm!
         </div>
         <button class="brief-deeplink" onclick="goTo('page-homework')">📋 Mở Bài tập - Kiểm tra →</button>
@@ -1685,15 +1691,10 @@ async function sendMsg(text) {
     wrap.insertBefore(eb, typing);
     wrap.scrollTop = wrap.scrollHeight;
   }
-    appendVinAssistantReplyBubble(
-      'Mình đã nhận câu hỏi. <strong>Bản prototype HTML</strong> chưa nối API: câu trả lời thật (RAG / Gemini / dữ liệu app) sẽ hiển thị ở đây sau khi tích hợp.' +
-        '<div class="ai-source-badge" style="margin-top:8px;">💬 Đã nhận: ' +
-        escapeHtmlProto(trimmed.length > 120 ? trimmed.slice(0, 120) + '…' : trimmed) +
-        '</div>'
-    );
-    renderAiChatFollowUp(trimmed);
-  }, 1200);
-}
+  // Loại bỏ đoạn mã thêm thông báo không cần thiết
+  renderAiChatFollowUp(trimmed);
+  } 1200;
+
 
 function showPage(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
