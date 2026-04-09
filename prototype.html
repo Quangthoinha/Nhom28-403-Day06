@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
 <title>VinSchool One</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230F2E96'/%3E%3Ctext x='16' y='22' text-anchor='middle' fill='white' font-size='16' font-family='system-ui'%3EV%3C/text%3E%3C/svg%3E">
 <style>
@@ -71,8 +73,17 @@ body {
 .nav-label { font-size: 10px; color: #9ca3af; }
 .nav-item.active .nav-label { color: #1B4FD8; font-weight: 600; }
 /* ── Pages ── */
-.page { display: none; flex-direction: column; }
-.page.active { display: flex; }
+.page {
+  display: none !important;
+  flex-direction: column;
+  pointer-events: none;
+  visibility: hidden;
+}
+.page.active {
+  display: flex !important;
+  pointer-events: auto;
+  visibility: visible;
+}
 /* ── Generic card ── */
 .card {
   background: white; border-radius: 12px;
@@ -567,6 +578,38 @@ body {
 }
 .ai-chat-parent-chip:hover { background:#ede9fe; }
 .ai-chat-parent-chip:active { background:#e0e7ff; }
+
+/* Gợi ý tiếp theo (hàng ngang, trên ô nhập) */
+.ai-chat-followup-bar {
+  flex-shrink:0;
+  background:#f9fafb;
+  border-top:1px solid #e5e7eb;
+  padding:6px 0 4px;
+}
+.ai-chat-followup-lbl {
+  font-size:10px; font-weight:700; color:#9ca3af;
+  letter-spacing:.35px;
+  padding:0 14px 6px;
+}
+.ai-chat-followup-row {
+  display:flex; flex-direction:row; flex-wrap:nowrap;
+  gap:8px; overflow-x:auto;
+  padding:0 14px 6px;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+}
+.ai-chat-followup-row::-webkit-scrollbar { display:none; }
+.ai-chat-followup-chip {
+  flex-shrink:0; max-width:min(280px,85vw);
+  padding:8px 12px; border-radius:18px;
+  font-size:11.5px; font-weight:600; line-height:1.35;
+  border:1.5px solid #a5b4fc; color:#3730a3;
+  background:white; cursor:pointer; font-family:inherit;
+  text-align:left;
+  box-shadow:0 1px 2px rgba(99,102,241,.08);
+}
+.ai-chat-followup-chip:hover { background:#eef2ff; border-color:#818cf8; }
+.ai-chat-followup-chip:active { background:#e0e7ff; }
 
 /* Chat input bar */
 .ai-chat-input-bar {
@@ -1116,7 +1159,6 @@ body {
 <!-- ══════════════════════ CHAT TAB ══════════════════════ -->
 <div class="page" id="page-chat">
   <div class="chat-search"><input placeholder="Tìm kiếm" type="text"></div>
-  <!-- Vin-Assistant pinned entry -->
   <div class="chat-section-lbl">TRỢ LÝ AI</div>
   <div style="background:white;border-bottom:1px solid #f3f4f6;">
     <div class="chat-row" onclick="goTo('page-ai-chat')" style="background:linear-gradient(135deg,rgba(99,102,241,.06),rgba(27,79,216,.06));border-left:3px solid #6366f1;">
@@ -1192,7 +1234,7 @@ body {
 </div>
 
 <!-- ══════════════════════ AI CHAT ══════════════════════ -->
-<div class="page" id="page-ai-chat" style="height:100%;">
+<div class="page" id="page-ai-chat" style="height:100%;min-height:0;">
   <div class="ai-sub-header">
     <span class="sub-back" onclick="goBack()">←</span>
     <span style="font-size:16px;">🤖</span>
@@ -1240,6 +1282,12 @@ body {
       <div class="bubble-ai-avatar">🤖</div>
       <div class="bubble-ai"><div class="typing-dots"><span></span><span></span><span></span></div></div>
     </div>
+  </div>
+
+  <!-- Gợi ý câu hỏi tiếp theo (sau lượt hội thoại đầu; cập nhật theo câu vừa gửi) -->
+  <div id="aiChatFollowUpBar" class="ai-chat-followup-bar" style="display:none;" aria-label="Gợi ý câu hỏi tiếp theo">
+    <div class="ai-chat-followup-lbl">GỢI Ý TIẾP THEO</div>
+    <div class="ai-chat-followup-row" id="aiChatFollowUpRow" role="list"></div>
   </div>
 
   <!-- Input bar -->
@@ -1393,6 +1441,9 @@ const MAIN = ['page-home','page-student','page-chat','page-notifications','page-
 const TAB_MAP = { home:'page-home', student:'page-student', chat:'page-chat', notifications:'page-notifications', account:'page-account' };
 let cur = 'page-home', hist = [];
 let __reportTriggerBtn = null;
+let __aiChatExchangeCount = 0;
+let __aiFollowUpPoolRotate = 0;
+let __lastUserQueryForFollowUp = '';
 
 const REPORT_FLAG_BTN_HTML =
   '<button type="button" class="ai-act-report" onclick="openReportModal(this)" title="Báo cáo nội dung" aria-label="Báo cáo">' +
@@ -1412,9 +1463,94 @@ function sendParentTip(q) {
   sendMsg(q);
 }
 
+function sendFollowUpTip(q) {
+  sendParentTip(q);
+}
+
 function hideAiChatParentTips() {
   const tips = document.getElementById('aiChatParentTips');
   if (tips) tips.style.display = 'none';
+}
+
+function pickFollowUpQueries(lastUserText) {
+  const t = (lastUserText || '').toLowerCase();
+  if (/bài tập|homework|nộp|deadline|chưa làm/i.test(t)) {
+    return [
+      'Hạn nộp từng bài cụ thể là ngày nào?',
+      'Môn nào cần ưu tiên làm trước?',
+      'Thực đơn trưa hôm nay là gì?',
+      'Ngày mai có kiểm tra không?'
+    ];
+  }
+  if (/ăn|thực đơn|menu|trưa|bữa/i.test(t)) {
+    return [
+      'Tuần này còn bài tập nào chưa làm?',
+      'Chiều nay có hoạt động ngoại khóa không?',
+      'Điểm các môn gần nhất?',
+      'Hôm nay có tiết thể dục không?'
+    ];
+  }
+  if (/lịch|tiết|thể dục|mấy giờ|thời khoá/i.test(t)) {
+    return [
+      'Giờ tan học hôm nay là mấy giờ?',
+      'Sáng mai có cần mang đồ gì đặc biệt?',
+      'Tuần này còn bài tập nào chưa làm?',
+      'Hôm nay ăn trưa gì ở trường?'
+    ];
+  }
+  if (/học phí|phí|tiền|thanh toán|đóng/i.test(t)) {
+    return [
+      'Chi tiết từng khoản phí?',
+      'Hạn đóng tiếp theo khi nào?',
+      'Điểm danh chuyên cần tuần này?',
+      'Có thông báo nợ phí không?'
+    ];
+  }
+  if (/điểm|điểm số|môn học/i.test(t)) {
+    return [
+      'Môn nào cần củng cố thêm?',
+      'Bài tập môn đó còn gì chưa làm?',
+      'Nhận xét gần nhất của giáo viên?',
+      'Lịch kiểm tra sắp tới?'
+    ];
+  }
+  if (/nhận xét|thầy|cô|giáo viên|dặn/i.test(t)) {
+    return [
+      'Bài tập liên quan môn đó còn hạn nào?',
+      'Điểm môn đó thế nào?',
+      'Có họp phụ huynh sắp tới không?',
+      'Lịch học hôm nay?'
+    ];
+  }
+  const pools = [
+    ['Tuần này còn bài tập nào chưa làm?', 'Hôm nay ăn gì ở trường?', 'Lịch học hôm nay thế nào?', 'Có nhận xét mới từ giáo viên không?', 'Học phí kỳ này đã đủ chưa?'],
+    ['Điểm các môn gần nhất?', 'Hưng có hoạt động CLB nào hôm nay?', 'Thông báo nhà trường mới nhất?', 'Chuyên cần tuần này ra sao?', 'Sự kiện hay ngày nghỉ sắp tới?'],
+    ['Bài kiểm tra sắp tới môn nào?', 'Cần mang đồ gì ngày mai?', 'Đón con có đổi giờ không?', 'Phí dịch vụ bán trú còn gì cần đóng?', 'Đăng ký ngoại khóa còn hạn không?']
+  ];
+  const idx = __aiFollowUpPoolRotate % pools.length;
+  __aiFollowUpPoolRotate += 1;
+  return pools[idx];
+}
+
+function renderAiChatFollowUp(lastUserText) {
+  __lastUserQueryForFollowUp = lastUserText || '';
+  const bar = document.getElementById('aiChatFollowUpBar');
+  const row = document.getElementById('aiChatFollowUpRow');
+  if (!bar || !row) return;
+  const qs = pickFollowUpQueries(lastUserText);
+  row.innerHTML = '';
+  qs.forEach((q) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'ai-chat-followup-chip';
+    b.setAttribute('role', 'listitem');
+    const label = q.length > 48 ? q.slice(0, 46) + '…' : q;
+    b.textContent = label;
+    b.title = q;
+    b.onclick = () => sendFollowUpTip(q);
+    row.appendChild(b);
+  });
+  bar.style.display = 'block';
 }
 
 function openReportModal(btn) {
@@ -1578,6 +1714,7 @@ function retryAiMessage(btn) {
         escapeHtmlProto(q.length > 100 ? q.slice(0, 100) + '…' : q) +
         '</div>'
     );
+    renderAiChatFollowUp(q);
   }, 900);
 }
 
@@ -1585,12 +1722,14 @@ function retryAiMessage(btn) {
 function sendMsg(text) {
   if (!text || !text.trim()) return;
   hideAiChatParentTips();
+  __aiChatExchangeCount += 1;
+  const trimmed = text.trim();
   const wrap = document.getElementById('aiChatWrap');
   const typing = document.getElementById('typingIndicator');
   // Add user bubble
   const ub = document.createElement('div');
   ub.className = 'bubble-user';
-  ub.textContent = text.trim();
+  ub.textContent = trimmed;
   wrap.insertBefore(ub, typing);
   document.getElementById('chatInput').value = '';
   // Show typing, then AI fallback reply
@@ -1598,13 +1737,13 @@ function sendMsg(text) {
   wrap.scrollTop = wrap.scrollHeight;
   setTimeout(() => {
     if (typing) typing.style.display = 'none';
-    var q = text.trim();
     appendVinAssistantReplyBubble(
       'Mình đã nhận câu hỏi. <strong>Bản prototype HTML</strong> chưa nối API: câu trả lời thật (RAG / Gemini / dữ liệu app) sẽ hiển thị ở đây sau khi tích hợp.' +
         '<div class="ai-source-badge" style="margin-top:8px;">💬 Đã nhận: ' +
-        escapeHtmlProto(q.length > 120 ? q.slice(0, 120) + '…' : q) +
+        escapeHtmlProto(trimmed.length > 120 ? trimmed.slice(0, 120) + '…' : trimmed) +
         '</div>'
     );
+    renderAiChatFollowUp(trimmed);
   }, 1200);
 }
 
@@ -1613,6 +1752,9 @@ function showPage(id) {
   document.getElementById(id).classList.add('active');
   document.getElementById('screenWrap').scrollTop = 0;
   document.getElementById('appHeader').style.display = MAIN.includes(id) ? 'flex' : 'none';
+  if (id === 'page-ai-chat' && __aiChatExchangeCount > 0) {
+    renderAiChatFollowUp(__lastUserQueryForFollowUp);
+  }
 }
 function switchTab(tab) {
   const id = TAB_MAP[tab]; hist = []; cur = id; showPage(id);
