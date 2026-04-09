@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <title>VinSchool One</title>
@@ -23,6 +23,34 @@ body {
   overflow: hidden;
   box-shadow: 0 20px 60px rgba(0,0,0,0.35);
   border-radius: 44px;
+}
+/* ── Mobile (thiết bị chạm): dùng full màn hình điện thoại ── */
+@media (max-width: 480px) and (hover: none) and (pointer: coarse) {
+  body {
+    background: #f5f6fa;
+    padding: 0;
+    align-items: stretch;
+    justify-content: stretch;
+    height: 100dvh;
+    overflow: hidden;
+  }
+  .app {
+    width: 100%;
+    height: 100dvh;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .bottom-nav {
+    padding-bottom: max(18px, env(safe-area-inset-bottom));
+    left: 0;
+    transform: none;
+    width: 100%;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+  .status-bar {
+    padding-top: max(14px, env(safe-area-inset-top));
+  }
 }
 /* ── Status Bar ── */
 .status-bar {
@@ -68,12 +96,28 @@ body {
   box-shadow: 0 2px 10px rgba(15, 46, 150, 0.12);
 }
 /* ── Screen wrap ── */
-.screen-wrap { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+.screen-wrap {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  /* Chừa chỗ cho bottom nav (tránh bị che khi nav được ghim dưới) */
+  padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+}
 .screen-wrap::-webkit-scrollbar { display: none; }
 /* ── Bottom nav ── */
 .bottom-nav {
+  display: flex;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: white; border-top: 1px solid #e5e7eb;
-  display: flex; padding: 8px 0 18px; flex-shrink: 0;
+  padding: 8px 0 calc(18px + env(safe-area-inset-bottom, 0px));
+  flex-shrink: 0;
+  border-bottom-left-radius: 44px;
+  border-bottom-right-radius: 44px;
+  z-index: 50;
 }
 .nav-item {
   flex: 1; display: flex; flex-direction: column;
@@ -1169,7 +1213,11 @@ body {
             <button type="button" class="ai-act-dislike" onclick="toggleAiDislike(this)" title="Không hữu ích" aria-label="Không hữu ích">👎</button>
             <button type="button" class="ai-act-retry" onclick="retryAiMessage(this)" title="Thử lại" aria-label="Thử lại">↻</button>
             <button type="button" class="ai-act-copy" onclick="copyAiMessage(this)" title="Sao chép" aria-label="Sao chép">⎘</button>
-            <button type="button" class="ai-act-report" onclick="openReportModal(this)" title="Báo cáo nội dung" aria-label="Báo cáo"><svg class="ai-report-flag-ico" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="#dc2626" d="M4 21V3h2v1h12l-2 3.5L18 11H6v10H4zm2-9h9.3l-1.1-2 1.1-2H6v4z"/></svg></button>
+            <button type="button" class="ai-act-report" onclick="openReportModal(this)" title="Báo cáo nội dung" aria-label="Báo cáo">
+              <svg class="ai-report-flag-ico" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="#dc2626" d="M4 21V3h2v1h12l-2 3.5L18 11H6v10H4zm2-9h9.3l-1.1-2 1.1-2H6v4z"/>
+              </svg>
+            </button>
           </div>
         </div>
       </div>
@@ -1212,8 +1260,10 @@ body {
   <div class="ai-sub-header" style="flex-direction:column;align-items:flex-start;padding:14px 16px 16px;">
     <div style="display:flex;align-items:center;gap:8px;width:100%;margin-bottom:8px;">
       <span class="sub-back" onclick="goBack()">←</span>
-      <span style="font-size:15px;font-weight:700;flex:1;">Bản tin hàng ngày</span>
-      <span class="ai-badge">AI ✨</span>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span style="font-size:18px;">🤖</span>
+        <span style="color:white;font-size:15px;font-weight:700;">Vin-Assistant</span>
+      </div>
     </div>
     <div style="font-size:18px;font-weight:800;">Thứ 5, 09/04/2026</div>
     <div style="font-size:12px;opacity:.8;margin-top:2px;">Tổng hợp 5 sự kiện nổi bật trong ngày của Nguyễn Hưng</div>
@@ -1685,15 +1735,10 @@ async function sendMsg(text) {
     wrap.insertBefore(eb, typing);
     wrap.scrollTop = wrap.scrollHeight;
   }
-    appendVinAssistantReplyBubble(
-      'Mình đã nhận câu hỏi. <strong>Bản prototype HTML</strong> chưa nối API: câu trả lời thật (RAG / Gemini / dữ liệu app) sẽ hiển thị ở đây sau khi tích hợp.' +
-        '<div class="ai-source-badge" style="margin-top:8px;">💬 Đã nhận: ' +
-        escapeHtmlProto(trimmed.length > 120 ? trimmed.slice(0, 120) + '…' : trimmed) +
-        '</div>'
-    );
-    renderAiChatFollowUp(trimmed);
-  }, 1200);
-}
+  // Loại bỏ đoạn mã thêm thông báo không cần thiết
+  renderAiChatFollowUp(trimmed);
+  } 1200;
+
 
 function showPage(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
