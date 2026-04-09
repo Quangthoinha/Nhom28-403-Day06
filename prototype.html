@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
 <title>VinSchool One</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230F2E96'/%3E%3Ctext x='16' y='22' text-anchor='middle' fill='white' font-size='16' font-family='system-ui'%3EV%3C/text%3E%3C/svg%3E">
 <!-- Added marked.js for Markdown rendering -->
@@ -73,8 +75,17 @@ body {
 .nav-label { font-size: 10px; color: #9ca3af; }
 .nav-item.active .nav-label { color: #1B4FD8; font-weight: 600; }
 /* ── Pages ── */
-.page { display: none; flex-direction: column; }
-.page.active { display: flex; }
+.page {
+  display: none !important;
+  flex-direction: column;
+  pointer-events: none;
+  visibility: hidden;
+}
+.page.active {
+  display: flex !important;
+  pointer-events: auto;
+  visibility: visible;
+}
 /* ── Generic card ── */
 .card {
   background: white; border-radius: 12px;
@@ -330,13 +341,26 @@ body {
 /* Search bar on home */
 .ai-search-bar {
   margin:10px 14px 0; background:white; border-radius:24px;
-  display:flex; align-items:center; gap:8px; padding:10px 14px;
-  box-shadow:0 2px 8px rgba(27,79,216,.15); cursor:pointer;
+  display:flex; align-items:center; gap:8px; padding:8px 10px 8px 14px;
+  box-shadow:0 2px 8px rgba(27,79,216,.15);
   border:1.5px solid #dbeafe;
 }
-.ai-search-bar .ai-ico { font-size:18px; }
-.ai-search-bar .ai-placeholder { font-size:13px; color:#9ca3af; flex:1; }
-.ai-search-bar .ai-mic { font-size:18px; color:#6366f1; }
+.ai-search-bar .ai-ico { font-size:18px; flex-shrink:0; }
+.home-ai-chat-input {
+  flex:1; min-width:0;
+  border:none; background:transparent;
+  font-size:13px; color:#111827; outline:none;
+}
+.home-ai-chat-input::placeholder { color:#9ca3af; }
+.home-ai-send {
+  width:34px; height:34px; border-radius:50%; flex-shrink:0;
+  border:none; cursor:pointer;
+  background:linear-gradient(135deg,#4f46e5,#1B4FD8);
+  color:white; font-size:20px; line-height:1;
+  display:flex; align-items:center; justify-content:center;
+  padding:0 0 1px 2px;
+}
+.home-ai-send:active { opacity:.92; }
 
 /* AI badge / label */
 .ai-badge {
@@ -372,15 +396,81 @@ body {
   color:white; border:none; font-size:16px; cursor:pointer;
   display:flex; align-items:center; justify-content:center;
 }
-
-/* Suggestion chips */
-.chips-row { display:flex; flex-wrap:wrap; gap:8px; padding:12px 14px; background:white; border-bottom:1px solid #f3f4f6; }
-.chip {
-  padding:6px 12px; border-radius:16px; font-size:12px; font-weight:600;
-  border:1.5px solid #dbeafe; color:#1e40af; background:white; cursor:pointer;
-  white-space:nowrap;
+.ai-search-chips-row {
+  display:flex; flex-direction:row; flex-wrap:nowrap;
+  gap:8px; overflow-x:auto;
+  padding:0 0 12px 0; margin:0 -2px 0 0;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
 }
-.chip:active { background:#eff6ff; }
+.ai-search-chips-row::-webkit-scrollbar { display:none; }
+.ai-search-chip {
+  flex-shrink:0;
+  padding:7px 14px; border-radius:20px;
+  font-size:12px; font-weight:600;
+  border:1px solid rgba(255,255,255,.4);
+  background:rgba(255,255,255,.14);
+  color:white; cursor:pointer;
+  white-space:nowrap;
+  font-family:inherit;
+}
+.ai-search-chip:hover { background:rgba(255,255,255,.22); }
+.ai-search-chip:active { background:rgba(255,255,255,.28); }
+
+/* Báo cáo: modal */
+.report-modal-overlay {
+  position:fixed; inset:0; z-index:9999;
+  background:rgba(15,23,42,.5);
+  display:none; align-items:flex-end; justify-content:center;
+  padding:0; box-sizing:border-box;
+}
+.report-modal-overlay.is-open { display:flex; }
+.report-modal {
+  width:100%; max-width:420px;
+  background:#fff; border-radius:18px 18px 0 0;
+  padding:18px 16px 22px;
+  padding-bottom:calc(22px + env(safe-area-inset-bottom, 0px));
+  max-height:88vh; overflow-y:auto;
+  box-shadow:0 -8px 40px rgba(0,0,0,.18);
+  animation:reportSheetUp .22s ease-out;
+}
+@keyframes reportSheetUp {
+  from { transform:translateY(100%); opacity:.8; }
+  to { transform:translateY(0); opacity:1; }
+}
+.report-modal h2 {
+  margin:0 0 6px; font-size:17px; font-weight:800; color:#111827;
+}
+.report-modal-hint { margin:0 0 14px; font-size:12.5px; color:#6b7280; line-height:1.45; }
+.report-reason-list { display:flex; flex-direction:column; gap:8px; margin-bottom:14px; }
+.report-reason-list label {
+  display:flex; align-items:flex-start; gap:10px;
+  font-size:13px; color:#374151; line-height:1.35; cursor:pointer;
+  padding:10px 12px; border-radius:12px; border:1.5px solid #e5e7eb;
+  background:#fafafa;
+}
+.report-reason-list label:has(input:checked) {
+  border-color:#6366f1; background:#eef2ff;
+}
+.report-reason-list input { margin-top:3px; accent-color:#4f46e5; }
+.report-detail-lbl { display:block; font-size:12px; font-weight:700; color:#374151; margin-bottom:6px; }
+#reportModalDetail {
+  width:100%; box-sizing:border-box;
+  border:1.5px solid #e5e7eb; border-radius:12px;
+  padding:10px 12px; font-size:13px; font-family:inherit;
+  resize:vertical; min-height:72px; margin-bottom:16px;
+}
+.report-modal-actions { display:flex; gap:10px; }
+.report-modal-actions button {
+  flex:1; padding:12px; border-radius:12px; font-size:14px; font-weight:700;
+  cursor:pointer; font-family:inherit; border:none;
+}
+.report-modal-actions .report-btn-cancel {
+  background:#f3f4f6; color:#374151;
+}
+.report-modal-actions .report-btn-submit {
+  background:linear-gradient(135deg,#4f46e5,#1B4FD8); color:white;
+}
 
 /* AI result card */
 .ai-result-card {
@@ -428,11 +518,37 @@ body {
   background:linear-gradient(135deg,#4f46e5,#1B4FD8);
   color:white; display:flex; align-items:center; justify-content:center; font-size:14px;
 }
+.bubble-ai-stack { flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; }
 .bubble-ai {
   background:white; border-radius:4px 18px 18px 18px;
   box-shadow:0 2px 6px rgba(0,0,0,.09); padding:10px 14px;
   font-size:12.5px; color:#374151; line-height:1.5;
 }
+.ai-msg-actions {
+  display:flex; align-items:center; gap:2px;
+  padding:0 0 0 2px; margin-top:2px;
+}
+.ai-msg-actions button {
+  border:none; background:transparent;
+  width:34px; height:34px; border-radius:10px;
+  cursor:pointer; font-size:16px; line-height:1;
+  color:#9ca3af;
+  display:flex; align-items:center; justify-content:center;
+  transition:background .15s,color .15s;
+}
+.ai-msg-actions button:hover { background:#f3f4f6; color:#4b5563; }
+.ai-msg-actions button.ai-act-like.active { color:#16a34a; background:#dcfce7; }
+.ai-msg-actions button.ai-act-dislike.active { color:#dc2626; background:#fee2e2; }
+.ai-msg-actions button.copied { color:#2563eb; }
+.ai-msg-actions .ai-act-report {
+  width:34px; height:34px; padding:0; margin-left:4px;
+  border:none; border-radius:10px; background:transparent;
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  flex-shrink:0; color:inherit;
+}
+.ai-msg-actions .ai-act-report:hover { background:#fef2f2; }
+.ai-msg-actions .ai-act-report:disabled { opacity:.45; cursor:default; }
+.ai-report-flag-ico { display:block; }
 .bubble-ai .ai-card-mini {
   background:#f9fafb; border-radius:8px; padding:10px; margin-top:8px; border:1px solid #e5e7eb;
 }
@@ -444,11 +560,58 @@ body {
 .typing-dots span:nth-child(3) { animation-delay:.30s; }
 @keyframes bounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-6px)} }
 
-.ai-suggestions { padding:10px 14px; display:flex; flex-wrap:wrap; gap:6px; }
-.ai-suggest-chip {
-  padding:6px 12px; border-radius:14px; font-size:12px; font-weight:500;
-  border:1.5px solid #c7d2fe; color:#4f46e5; background:white; cursor:pointer;
+/* Gợi ý câu hỏi trong màn chat (phụ huynh) */
+.ai-chat-parent-tips {
+  align-self:stretch; margin-top:4px;
 }
+.ai-chat-parent-tips-hd {
+  font-size:11px; font-weight:700; color:#9ca3af; letter-spacing:.35px;
+  margin-bottom:8px; padding:0 2px;
+}
+.ai-chat-parent-tips-chips {
+  display:flex; flex-wrap:wrap; gap:8px;
+}
+.ai-chat-parent-chip {
+  padding:8px 12px; border-radius:16px;
+  font-size:12px; font-weight:600; line-height:1.35;
+  border:1.5px solid #c7d2fe; color:#4338ca;
+  background:#f5f3ff; cursor:pointer; font-family:inherit;
+  text-align:left; max-width:100%;
+}
+.ai-chat-parent-chip:hover { background:#ede9fe; }
+.ai-chat-parent-chip:active { background:#e0e7ff; }
+
+/* Gợi ý tiếp theo (hàng ngang, trên ô nhập) */
+.ai-chat-followup-bar {
+  flex-shrink:0;
+  background:#f9fafb;
+  border-top:1px solid #e5e7eb;
+  padding:6px 0 4px;
+}
+.ai-chat-followup-lbl {
+  font-size:10px; font-weight:700; color:#9ca3af;
+  letter-spacing:.35px;
+  padding:0 14px 6px;
+}
+.ai-chat-followup-row {
+  display:flex; flex-direction:row; flex-wrap:nowrap;
+  gap:8px; overflow-x:auto;
+  padding:0 14px 6px;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+}
+.ai-chat-followup-row::-webkit-scrollbar { display:none; }
+.ai-chat-followup-chip {
+  flex-shrink:0; max-width:min(280px,85vw);
+  padding:8px 12px; border-radius:18px;
+  font-size:11.5px; font-weight:600; line-height:1.35;
+  border:1.5px solid #a5b4fc; color:#3730a3;
+  background:white; cursor:pointer; font-family:inherit;
+  text-align:left;
+  box-shadow:0 1px 2px rgba(99,102,241,.08);
+}
+.ai-chat-followup-chip:hover { background:#eef2ff; border-color:#818cf8; }
+.ai-chat-followup-chip:active { background:#e0e7ff; }
 
 /* Chat input bar */
 .ai-chat-input-bar {
@@ -560,12 +723,12 @@ body {
 
 <!-- ══════════════════════ HOME ══════════════════════ -->
 <div class="page active" id="page-home">
-  <!-- AI Search Bar -->
-  <div class="ai-search-bar" onclick="goTo('page-ai-search')">
+  <!-- AI: nhập trên Home, chỉ khi gửi mới sang màn chat -->
+  <div class="ai-search-bar">
     <span class="ai-ico">🤖</span>
-    <span class="ai-placeholder">Hỏi Vin-Assistant...</span>
-    <span class="ai-badge">AI ✨</span>
-    <span class="ai-mic">🎤</span>
+    <input type="text" id="homeAiChatInput" class="home-ai-chat-input" placeholder="Hỏi Vin-Assistant..." autocomplete="off" enterkeyhint="send"
+      onkeydown="if(event.key==='Enter'){ event.preventDefault(); submitHomeAiQuestion(); }">
+    <button type="button" class="home-ai-send" onclick="submitHomeAiQuestion()" title="Gửi" aria-label="Gửi câu hỏi">›</button>
   </div>
   <div class="smart-banner" style="cursor:pointer;" onclick="goTo('page-ai-brief')">
     <div class="lbl">✨ SMART DAILY BRIEF · THỨ 5, 09/04/2026</div>
@@ -998,7 +1161,6 @@ body {
 <!-- ══════════════════════ CHAT TAB ══════════════════════ -->
 <div class="page" id="page-chat">
   <div class="chat-search"><input placeholder="Tìm kiếm" type="text"></div>
-  <!-- Vin-Assistant pinned entry -->
   <div class="chat-section-lbl">TRỢ LÝ AI</div>
   <div style="background:white;border-bottom:1px solid #f3f4f6;">
     <div class="chat-row" onclick="goTo('page-ai-chat')" style="background:linear-gradient(135deg,rgba(99,102,241,.06),rgba(27,79,216,.06));border-left:3px solid #6366f1;">
@@ -1008,11 +1170,10 @@ body {
           <span class="chat-name">Vin-Assistant</span>
           <span class="ai-badge" style="font-size:9px;padding:1px 6px;">AI ✨</span>
         </div>
-        <div class="chat-preview">Mình tìm thấy 4 bài tập chưa hoàn thành tuần này...</div>
+        <div class="chat-preview">Hỏi về bài tập, thực đơn, lịch học…</div>
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
-        <span style="font-size:10px;color:#9ca3af;">Vừa xong</span>
-        <span style="width:18px;height:18px;border-radius:50%;background:#ef4444;color:white;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;">3</span>
+        <span style="font-size:10px;color:#9ca3af;">Mở để chat</span>
       </div>
     </div>
   </div>
@@ -1049,13 +1210,20 @@ body {
 <!-- ══════════════════════ AI SEARCH ══════════════════════ -->
 <div class="page" id="page-ai-search">
   <div class="ai-search-input-wrap">
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
       <span class="sub-back" onclick="goBack()" style="color:white;font-size:22px;cursor:pointer;">←</span>
       <div style="display:flex;align-items:center;gap:6px;">
         <span style="font-size:18px;">🤖</span>
         <span style="color:white;font-size:15px;font-weight:700;">Vin-Assistant</span>
-        <span class="ai-badge">AI ✨</span>
       </div>
+    </div>
+    <div class="ai-search-chips-row" role="list" aria-label="Gợi ý nhanh">
+      <button type="button" class="ai-search-chip" onclick="aiSearchPick('Tuần này Hưng có bài tập nào chưa làm?')">📋 Bài tập chưa làm?</button>
+      <button type="button" class="ai-search-chip" onclick="aiSearchPick('Hôm nay con ăn gì ở trường?')">🍱 Thực đơn hôm nay?</button>
+      <button type="button" class="ai-search-chip" onclick="aiSearchPick('Lịch học hôm nay của Hưng?')">📅 Lịch học hôm nay?</button>
+      <button type="button" class="ai-search-chip" onclick="aiSearchPick('Nhận xét mới nhất của giáo viên về Hưng?')">💬 Nhận xét gần nhất?</button>
+      <button type="button" class="ai-search-chip" onclick="aiSearchPick('Học phí còn thiếu không?')">💰 Học phí</button>
+      <button type="button" class="ai-search-chip" onclick="aiSearchPick('Điểm các môn của Hưng?')">📊 Điểm số</button>
     </div>
     <div class="ai-search-input-box">
       <span style="font-size:16px;">🔍</span>
@@ -1064,22 +1232,11 @@ body {
     </div>
   </div>
 
-  <!-- Suggestion chips -->
-  <div style="padding:10px 14px 4px;font-size:11px;font-weight:700;color:#6b7280;letter-spacing:.3px;">GỢI Ý CÂU HỎI</div>
-  <div class="chips-row">
-    <div class="chip" onclick="goTo('page-ai-chat')">📋 Bài tập chưa làm?</div>
-    <div class="chip" onclick="goTo('page-ai-chat')">🍱 Hôm nay ăn gì?</div>
-    <div class="chip" onclick="goTo('page-ai-chat')">📅 Lịch học hôm nay?</div>
-    <div class="chip" onclick="goTo('page-ai-chat')">💬 Nhận xét mới nhất?</div>
-    <div class="chip" onclick="goTo('page-ai-chat')">💰 Học phí còn thiếu?</div>
-    <div class="chip" onclick="goTo('page-ai-chat')">📊 Điểm các môn?</div>
-  </div>
-
   <div id="ai-search-results-root"></div>
 </div>
 
 <!-- ══════════════════════ AI CHAT ══════════════════════ -->
-<div class="page" id="page-ai-chat" style="height:100%;">
+<div class="page" id="page-ai-chat" style="height:100%;min-height:0;">
   <div class="ai-sub-header">
     <span class="sub-back" onclick="goBack()">←</span>
     <span style="font-size:16px;">🤖</span>
@@ -1091,57 +1248,34 @@ body {
   </div>
 
   <div class="ai-chat-wrap" id="aiChatWrap">
-    <!-- AI greeting -->
-    <div class="bubble-ai-wrap">
-      <div class="bubble-ai-avatar">🤖</div>
-      <div class="bubble-ai">
-        Xin chào! Mình là <strong>Vin-Assistant</strong> — trợ lý AI của VinSchool One. Mình có thể giúp bạn tra cứu thông tin về <strong>Nguyễn Hưng</strong> như bài tập, thực đơn, lịch học, điểm số...
+    <!-- Lời chào + gợi ý khi mở chat (gợi ý ẩn sau tin nhắn đầu tiên) -->
+    <div id="aiChatWelcomeBlock">
+      <div class="bubble-ai-wrap">
+        <div class="bubble-ai-avatar">🤖</div>
+        <div class="bubble-ai-stack">
+          <div class="bubble-ai">
+            Xin chào anh/chị! Mình là <strong>Vin-Assistant</strong> — có thể giúp anh/chị tra cứu nhanh thông tin về <strong>Nguyễn Hưng</strong> trong app (bài tập, thực đơn, lịch học, điểm số, học phí, nhận xét giáo viên…). Hãy gõ câu hỏi bên dưới hoặc chọn một gợi ý.
+            <div class="ai-source-badge" style="margin-top:8px;">📊 Dữ liệu theo học sinh đang chọn</div>
+          </div>
+          <div class="ai-msg-actions" role="toolbar" aria-label="Phản hồi tin nhắn AI">
+            <button type="button" class="ai-act-like" onclick="toggleAiLike(this)" title="Hữu ích" aria-label="Hữu ích">👍</button>
+            <button type="button" class="ai-act-dislike" onclick="toggleAiDislike(this)" title="Không hữu ích" aria-label="Không hữu ích">👎</button>
+            <button type="button" class="ai-act-retry" onclick="retryAiMessage(this)" title="Thử lại" aria-label="Thử lại">↻</button>
+            <button type="button" class="ai-act-copy" onclick="copyAiMessage(this)" title="Sao chép" aria-label="Sao chép">⎘</button>
+            <button type="button" class="ai-act-report" onclick="openReportModal(this)" title="Báo cáo nội dung" aria-label="Báo cáo"><svg class="ai-report-flag-ico" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="#dc2626" d="M4 21V3h2v1h12l-2 3.5L18 11H6v10H4zm2-9h9.3l-1.1-2 1.1-2H6v4z"/></svg></button>
+          </div>
+        </div>
       </div>
-    </div>
-
-    <!-- User question -->
-    <div class="bubble-user">Tuần này Hưng có bài tập nào chưa làm?</div>
-
-    <!-- AI response -->
-    <div class="bubble-ai-wrap">
-      <div class="bubble-ai-avatar">🤖</div>
-      <div class="bubble-ai">
-        Mình tìm thấy <strong>4 bài tập chưa hoàn thành</strong> tuần 06/04–12/04:
-        <div class="ai-card-mini">
-          <div class="ai-card-row"><span>📝</span><span style="flex:1;">Quiz TV Tuần 26 · Tiếng Việt</span><span class="urgency">Hôm nay!</span></div>
-          <div class="ai-card-row"><span>📝</span><span style="flex:1;">Quiz tuần 29 · Tiếng Việt</span><span style="color:#f59e0b;font-size:11px;font-weight:700;">10/04</span></div>
-          <div class="ai-card-row"><span>📝</span><span style="flex:1;">Quiz tuần 30 · Tiếng Việt</span><span style="color:#f59e0b;font-size:11px;font-weight:700;">11/04</span></div>
-          <div class="ai-card-row"><span>💻</span><span style="flex:1;">Unit 5 Project · CIE ICT</span><span style="color:#6b7280;font-size:11px;">12/04</span></div>
+      <div class="ai-chat-parent-tips" id="aiChatParentTips">
+        <div class="ai-chat-parent-tips-hd">GỢI Ý CÂU HỎI PHỤ HUYNH THƯỜNG GẶP</div>
+        <div class="ai-chat-parent-tips-chips">
+          <button type="button" class="ai-chat-parent-chip" onclick="sendParentTip('Tuần này Hưng còn bài tập nào chưa làm?')">📋 Tuần này còn bài tập nào chưa làm?</button>
+          <button type="button" class="ai-chat-parent-chip" onclick="sendParentTip('Hôm nay con ăn gì ở trường?')">🍱 Hôm nay con ăn gì ở trường?</button>
+          <button type="button" class="ai-chat-parent-chip" onclick="sendParentTip('Hôm nay Hưng có tiết thể dục không, lịch thế nào?')">📅 Lịch hôm nay &amp; tiết thể dục?</button>
+          <button type="button" class="ai-chat-parent-chip" onclick="sendParentTip('Điểm các môn gần nhất của Hưng?')">📊 Điểm các môn gần nhất?</button>
+          <button type="button" class="ai-chat-parent-chip" onclick="sendParentTip('Học phí kỳ này đã đủ chưa, còn thiếu không?')">💰 Học phí còn thiếu không?</button>
+          <button type="button" class="ai-chat-parent-chip" onclick="sendParentTip('Nhận xét mới nhất của giáo viên về Hưng?')">💬 Nhận xét mới của cô thầy?</button>
         </div>
-        <button class="ai-deeplink-btn" style="margin-top:8px;" onclick="goTo('page-homework')">Mở Bài tập →</button>
-        <div class="ai-source-badge" style="margin-top:6px;">📊 Dữ liệu từ Bài tập · Cập nhật hôm nay</div>
-      </div>
-    </div>
-
-    <!-- User follow-up -->
-    <div class="bubble-user">Hôm nay con ăn gì, có tiết thể dục không?</div>
-
-    <!-- AI multi-data response -->
-    <div class="bubble-ai-wrap">
-      <div class="bubble-ai-avatar">🤖</div>
-      <div class="bubble-ai">
-        Mình tra được 2 thông tin cùng lúc cho T5, 09/04:
-        <div class="ai-card-mini" style="margin-bottom:8px;">
-          <div style="font-size:11px;font-weight:700;color:#4f46e5;margin-bottom:4px;">🍱 THỰC ĐƠN TRƯA</div>
-          <div class="ai-card-row"><span>🥩</span><span>Bò kho tàu + Đậu phụ chiên</span></div>
-          <div class="ai-card-row"><span>🍚</span><span>Cơm trắng + Thanh long trắng</span></div>
-          <div class="ai-card-row"><span>🍗</span><span>Ăn phụ: Gà chiên KFC</span></div>
-        </div>
-        <div class="ai-card-mini">
-          <div style="font-size:11px;font-weight:700;color:#4f46e5;margin-bottom:4px;">📅 LỊCH HỌC HÔM NAY</div>
-          <div class="ai-card-row"><span>⚽</span><span>Tiết 3: GD Thể chất · 09:30-10:05</span></div>
-          <div style="font-size:11px;color:#f59e0b;margin-top:2px;padding-left:4px;">⚠️ Nhắc nhở mang giày thể thao!</div>
-        </div>
-        <div style="display:flex;gap:8px;margin-top:8px;">
-          <button class="ai-deeplink-btn" style="flex:1;padding:8px;" onclick="goTo('page-menu')">Xem thực đơn</button>
-          <button class="ai-deeplink-btn" style="flex:1;padding:8px;" onclick="goTo('page-schedule')">Xem lịch học</button>
-        </div>
-        <div class="ai-source-badge" style="margin-top:6px;">📊 Thực đơn + Thời khoá biểu · 2 nguồn</div>
       </div>
     </div>
 
@@ -1152,11 +1286,10 @@ body {
     </div>
   </div>
 
-  <!-- Suggested follow-ups -->
-  <div class="ai-suggestions">
-    <div class="ai-suggest-chip" onclick="sendMsg('Điểm các môn của Hưng?')">📊 Điểm các môn?</div>
-    <div class="ai-suggest-chip" onclick="sendMsg('Nhận xét mới nhất của giáo viên?')">💬 Nhận xét mới?</div>
-    <div class="ai-suggest-chip" onclick="sendMsg('Học phí còn thiếu không?')">💰 Học phí?</div>
+  <!-- Gợi ý câu hỏi tiếp theo (sau lượt hội thoại đầu; cập nhật theo câu vừa gửi) -->
+  <div id="aiChatFollowUpBar" class="ai-chat-followup-bar" style="display:none;" aria-label="Gợi ý câu hỏi tiếp theo">
+    <div class="ai-chat-followup-lbl">GỢI Ý TIẾP THEO</div>
+    <div class="ai-chat-followup-row" id="aiChatFollowUpRow" role="list"></div>
   </div>
 
   <!-- Input bar -->
@@ -1280,22 +1413,326 @@ body {
 </div>
 
 </div><!-- /app -->
+
+<div id="reportModalOverlay" class="report-modal-overlay" onclick="if(event.target===this)closeReportModal()" role="presentation">
+  <div class="report-modal" role="dialog" aria-modal="true" aria-labelledby="reportModalTitle" onclick="event.stopPropagation()">
+    <h2 id="reportModalTitle">Báo cáo nội dung</h2>
+    <p class="report-modal-hint">Chọn lý do báo cáo. Phản hồi của bạn giúp cải thiện Vin-Assistant an toàn và chính xác hơn.</p>
+    <form id="reportModalForm" onsubmit="return submitReportModal(event)">
+      <div class="report-reason-list">
+        <label><input type="radio" name="reportReason" value="inaccurate" required> Thông tin sai hoặc không chính xác</label>
+        <label><input type="radio" name="reportReason" value="harmful"> Nội dung xúc phạm, thiếu thân thiện hoặc không phù hợp</label>
+        <label><input type="radio" name="reportReason" value="spam"> Spam, quảng cáo hoặc lừa đảo</label>
+        <label><input type="radio" name="reportReason" value="privacy"> Vi phạm quyền riêng tư / an toàn trẻ em</label>
+        <label><input type="radio" name="reportReason" value="irrelevant"> Không liên quan câu hỏi của tôi</label>
+        <label><input type="radio" name="reportReason" value="other"> Lý do khác</label>
+      </div>
+      <label class="report-detail-lbl" for="reportModalDetail">Mô tả thêm (tuỳ chọn)</label>
+      <textarea id="reportModalDetail" placeholder="Ghi thêm chi tiết nếu cần…" maxlength="500"></textarea>
+      <div class="report-modal-actions">
+        <button type="button" class="report-btn-cancel" onclick="closeReportModal()">Huỷ</button>
+        <button type="submit" class="report-btn-submit">Gửi báo cáo</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <script src="prototype-data.js"></script>
 <script>
 const MAIN = ['page-home','page-student','page-chat','page-notifications','page-account'];
 const TAB_MAP = { home:'page-home', student:'page-student', chat:'page-chat', notifications:'page-notifications', account:'page-account' };
 let cur = 'page-home', hist = [];
+let __reportTriggerBtn = null;
+let __aiChatExchangeCount = 0;
+let __aiFollowUpPoolRotate = 0;
+let __lastUserQueryForFollowUp = '';
+
+const REPORT_FLAG_BTN_HTML =
+  '<button type="button" class="ai-act-report" onclick="openReportModal(this)" title="Báo cáo nội dung" aria-label="Báo cáo">' +
+  '<svg class="ai-report-flag-ico" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">' +
+  '<path fill="#dc2626" d="M4 21V3h2v1h12l-2 3.5L18 11H6v10H4zm2-9h9.3l-1.1-2 1.1-2H6v4z"/></svg></button>';
+
+function aiSearchPick(q) {
+  const inp = document.getElementById('aiSearchInput');
+  if (inp) inp.value = q;
+  goTo('page-ai-chat');
+  sendMsg(q);
+}
+
+function sendParentTip(q) {
+  const inp = document.getElementById('chatInput');
+  if (inp) inp.value = q;
+  sendMsg(q);
+}
+
+function sendFollowUpTip(q) {
+  sendParentTip(q);
+}
+
+function hideAiChatParentTips() {
+  const tips = document.getElementById('aiChatParentTips');
+  if (tips) tips.style.display = 'none';
+}
+
+function pickFollowUpQueries(lastUserText) {
+  const t = (lastUserText || '').toLowerCase();
+  if (/bài tập|homework|nộp|deadline|chưa làm/i.test(t)) {
+    return [
+      'Hạn nộp từng bài cụ thể là ngày nào?',
+      'Môn nào cần ưu tiên làm trước?',
+      'Thực đơn trưa hôm nay là gì?',
+      'Ngày mai có kiểm tra không?'
+    ];
+  }
+  if (/ăn|thực đơn|menu|trưa|bữa/i.test(t)) {
+    return [
+      'Tuần này còn bài tập nào chưa làm?',
+      'Chiều nay có hoạt động ngoại khóa không?',
+      'Điểm các môn gần nhất?',
+      'Hôm nay có tiết thể dục không?'
+    ];
+  }
+  if (/lịch|tiết|thể dục|mấy giờ|thời khoá/i.test(t)) {
+    return [
+      'Giờ tan học hôm nay là mấy giờ?',
+      'Sáng mai có cần mang đồ gì đặc biệt?',
+      'Tuần này còn bài tập nào chưa làm?',
+      'Hôm nay ăn trưa gì ở trường?'
+    ];
+  }
+  if (/học phí|phí|tiền|thanh toán|đóng/i.test(t)) {
+    return [
+      'Chi tiết từng khoản phí?',
+      'Hạn đóng tiếp theo khi nào?',
+      'Điểm danh chuyên cần tuần này?',
+      'Có thông báo nợ phí không?'
+    ];
+  }
+  if (/điểm|điểm số|môn học/i.test(t)) {
+    return [
+      'Môn nào cần củng cố thêm?',
+      'Bài tập môn đó còn gì chưa làm?',
+      'Nhận xét gần nhất của giáo viên?',
+      'Lịch kiểm tra sắp tới?'
+    ];
+  }
+  if (/nhận xét|thầy|cô|giáo viên|dặn/i.test(t)) {
+    return [
+      'Bài tập liên quan môn đó còn hạn nào?',
+      'Điểm môn đó thế nào?',
+      'Có họp phụ huynh sắp tới không?',
+      'Lịch học hôm nay?'
+    ];
+  }
+  const pools = [
+    ['Tuần này còn bài tập nào chưa làm?', 'Hôm nay ăn gì ở trường?', 'Lịch học hôm nay thế nào?', 'Có nhận xét mới từ giáo viên không?', 'Học phí kỳ này đã đủ chưa?'],
+    ['Điểm các môn gần nhất?', 'Hưng có hoạt động CLB nào hôm nay?', 'Thông báo nhà trường mới nhất?', 'Chuyên cần tuần này ra sao?', 'Sự kiện hay ngày nghỉ sắp tới?'],
+    ['Bài kiểm tra sắp tới môn nào?', 'Cần mang đồ gì ngày mai?', 'Đón con có đổi giờ không?', 'Phí dịch vụ bán trú còn gì cần đóng?', 'Đăng ký ngoại khóa còn hạn không?']
+  ];
+  const idx = __aiFollowUpPoolRotate % pools.length;
+  __aiFollowUpPoolRotate += 1;
+  return pools[idx];
+}
+
+function renderAiChatFollowUp(lastUserText) {
+  __lastUserQueryForFollowUp = lastUserText || '';
+  const bar = document.getElementById('aiChatFollowUpBar');
+  const row = document.getElementById('aiChatFollowUpRow');
+  if (!bar || !row) return;
+  const qs = pickFollowUpQueries(lastUserText);
+  row.innerHTML = '';
+  qs.forEach((q) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'ai-chat-followup-chip';
+    b.setAttribute('role', 'listitem');
+    const label = q.length > 48 ? q.slice(0, 46) + '…' : q;
+    b.textContent = label;
+    b.title = q;
+    b.onclick = () => sendFollowUpTip(q);
+    row.appendChild(b);
+  });
+  bar.style.display = 'block';
+}
+
+function openReportModal(btn) {
+  __reportTriggerBtn = btn;
+  const form = document.getElementById('reportModalForm');
+  if (form) form.reset();
+  const ov = document.getElementById('reportModalOverlay');
+  if (ov) {
+    ov.classList.add('is-open');
+    ov.setAttribute('aria-hidden', 'false');
+  }
+}
+
+function closeReportModal() {
+  const ov = document.getElementById('reportModalOverlay');
+  if (ov) {
+    ov.classList.remove('is-open');
+    ov.setAttribute('aria-hidden', 'true');
+  }
+  __reportTriggerBtn = null;
+}
+
+function submitReportModal(ev) {
+  ev.preventDefault();
+  const form = ev.target;
+  const fd = new FormData(form);
+  const reason = fd.get('reportReason');
+  if (!reason) {
+    window.alert('Vui lòng chọn một lý do báo cáo.');
+    return false;
+  }
+  const detailEl = document.getElementById('reportModalDetail');
+  const detail = detailEl ? (detailEl.value || '').trim() : '';
+  if (reason === 'other' && detail.length < 8) {
+    window.alert('Với lý do «Lý do khác», vui lòng mô tả thêm ít nhất 8 ký tự.');
+    return false;
+  }
+  const trigger = __reportTriggerBtn;
+  const stack = trigger && trigger.closest('.bubble-ai-stack');
+  const bubble = stack ? stack.querySelector('.bubble-ai') : null;
+  const preview = bubble ? (bubble.innerText || '').trim().slice(0, 160) : '';
+  console.log('[Vin-Assistant report prototype]', { reason, detail, preview });
+  window.alert(
+    'Cảm ơn bạn đã gửi báo cáo. Đội ngũ sẽ xem xét nội dung này.\n\n(Prototype — chưa gửi lên máy chủ.)'
+  );
+  if (trigger) {
+    trigger.disabled = true;
+    trigger.style.opacity = '0.45';
+    trigger.title = 'Đã gửi báo cáo';
+  }
+  closeReportModal();
+  return false;
+}
+
+/** Thanh công cụ dưới bubble AI — gọi khi app chèn tin trả lời từ API (đặt ngay sau `.bubble-ai`). */
+function aiMsgActionsHtml() {
+  return '<div class="ai-msg-actions" role="toolbar" aria-label="Phản hồi tin nhắn AI">' +
+    '<button type="button" class="ai-act-like" onclick="toggleAiLike(this)" title="Hữu ích" aria-label="Hữu ích">👍</button>' +
+    '<button type="button" class="ai-act-dislike" onclick="toggleAiDislike(this)" title="Không hữu ích" aria-label="Không hữu ích">👎</button>' +
+    '<button type="button" class="ai-act-retry" onclick="retryAiMessage(this)" title="Thử lại" aria-label="Thử lại">↻</button>' +
+    '<button type="button" class="ai-act-copy" onclick="copyAiMessage(this)" title="Sao chép" aria-label="Sao chép">⎘</button>' +
+    REPORT_FLAG_BTN_HTML +
+    '</div>';
+}
+window.aiMsgActionsHtml = aiMsgActionsHtml;
+
+function escapeHtmlProto(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function appendVinAssistantReplyBubble(innerHtml) {
+  var wrap = document.getElementById('aiChatWrap');
+  var typing = document.getElementById('typingIndicator');
+  if (!wrap) return;
+  var ab = document.createElement('div');
+  ab.className = 'bubble-ai-wrap';
+  ab.innerHTML =
+    '<div class="bubble-ai-avatar">🤖</div><div class="bubble-ai-stack"><div class="bubble-ai">' +
+    innerHtml +
+    '</div>' +
+    aiMsgActionsHtml() +
+    '</div>';
+  wrap.insertBefore(ab, typing);
+  wrap.scrollTop = wrap.scrollHeight;
+}
+
+function toggleAiLike(btn) {
+  btn.classList.toggle('active');
+  const row = btn.closest('.ai-msg-actions');
+  if (btn.classList.contains('active') && row) {
+    const d = row.querySelector('.ai-act-dislike');
+    if (d) d.classList.remove('active');
+  }
+}
+
+function toggleAiDislike(btn) {
+  btn.classList.toggle('active');
+  const row = btn.closest('.ai-msg-actions');
+  if (btn.classList.contains('active') && row) {
+    const l = row.querySelector('.ai-act-like');
+    if (l) l.classList.remove('active');
+  }
+}
+
+function copyAiMessage(btn) {
+  const stack = btn.closest('.bubble-ai-stack');
+  if (!stack) return;
+  const bubble = stack.querySelector('.bubble-ai');
+  if (!bubble) return;
+  const text = (bubble.innerText || '').trim();
+  const done = () => {
+    btn.classList.add('copied');
+    const prev = btn.textContent;
+    btn.textContent = '✓';
+    setTimeout(() => {
+      btn.textContent = prev;
+      btn.classList.remove('copied');
+    }, 1400);
+  };
+  const fallbackCopy = () => {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done).catch(() => { fallbackCopy(); done(); });
+  } else {
+    fallbackCopy();
+    done();
+  }
+}
+
+function retryAiMessage(btn) {
+  const aiWrap = btn.closest('.bubble-ai-wrap');
+  if (!aiWrap) return;
+  const wrap = document.getElementById('aiChatWrap');
+  const typing = document.getElementById('typingIndicator');
+  let prev = aiWrap.previousElementSibling;
+  while (prev && !prev.classList.contains('bubble-user')) prev = prev.previousElementSibling;
+  const q = prev && prev.textContent ? prev.textContent.trim() : '';
+  /* Không xoá bubble nếu không có tin người dùng phía trước (vd. lời chào mở đầu) */
+  if (!q) return;
+  aiWrap.remove();
+  if (!wrap) return;
+  if (typing) typing.style.display = 'flex';
+  wrap.scrollTop = wrap.scrollHeight;
+  setTimeout(() => {
+    if (typing) typing.style.display = 'none';
+    appendVinAssistantReplyBubble(
+      'Đang xử lý lại theo câu hỏi của anh/chị. Khi tích hợp đầy đủ, nội dung sẽ lấy từ backend / RAG.' +
+        '<div class="ai-source-badge" style="margin-top:8px;">🔁 Theo: ' +
+        escapeHtmlProto(q.length > 100 ? q.slice(0, 100) + '…' : q) +
+        '</div>'
+    );
+    renderAiChatFollowUp(q);
+  }, 900);
+}
 
 // AI chat: call real FastAPI backend
 async function sendMsg(text) {
   if (!text || !text.trim()) return;
+  hideAiChatParentTips();
+  __aiChatExchangeCount += 1;
+  const trimmed = text.trim();
   const wrap = document.getElementById('aiChatWrap');
   const typing = document.getElementById('typingIndicator');
   
   // Add user bubble
   const ub = document.createElement('div');
   ub.className = 'bubble-user';
-  ub.textContent = text.trim();
+  ub.textContent = trimmed;
   wrap.insertBefore(ub, typing);
   document.getElementById('chatInput').value = '';
   
@@ -1341,6 +1778,14 @@ async function sendMsg(text) {
     wrap.insertBefore(eb, typing);
     wrap.scrollTop = wrap.scrollHeight;
   }
+    appendVinAssistantReplyBubble(
+      'Mình đã nhận câu hỏi. <strong>Bản prototype HTML</strong> chưa nối API: câu trả lời thật (RAG / Gemini / dữ liệu app) sẽ hiển thị ở đây sau khi tích hợp.' +
+        '<div class="ai-source-badge" style="margin-top:8px;">💬 Đã nhận: ' +
+        escapeHtmlProto(trimmed.length > 120 ? trimmed.slice(0, 120) + '…' : trimmed) +
+        '</div>'
+    );
+    renderAiChatFollowUp(trimmed);
+  }, 1200);
 }
 
 function showPage(id) {
@@ -1348,6 +1793,9 @@ function showPage(id) {
   document.getElementById(id).classList.add('active');
   document.getElementById('screenWrap').scrollTop = 0;
   document.getElementById('appHeader').style.display = MAIN.includes(id) ? 'flex' : 'none';
+  if (id === 'page-ai-chat' && __aiChatExchangeCount > 0) {
+    renderAiChatFollowUp(__lastUserQueryForFollowUp);
+  }
 }
 function switchTab(tab) {
   const id = TAB_MAP[tab]; hist = []; cur = id; showPage(id);
@@ -1355,6 +1803,21 @@ function switchTab(tab) {
   document.getElementById('nav-' + tab).classList.add('active');
 }
 function goTo(id) { hist.push(cur); cur = id; showPage(id); }
+
+/** Gõ trên trang chủ → chỉ khi gửi mới chuyển sang Vin-Assistant chat */
+function submitHomeAiQuestion() {
+  var homeInp = document.getElementById('homeAiChatInput');
+  if (!homeInp) return;
+  var text = (homeInp.value || '').trim();
+  if (!text) return;
+  homeInp.value = '';
+  goTo('page-ai-chat');
+  sendMsg(text);
+  requestAnimationFrame(function () {
+    var ci = document.getElementById('chatInput');
+    if (ci) ci.focus();
+  });
+}
 function goBack() { if (hist.length) { cur = hist.pop(); showPage(cur); } }
 
 function switchHwTab(t) {
